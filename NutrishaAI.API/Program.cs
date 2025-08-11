@@ -126,6 +126,8 @@ builder.Services.AddScoped<IApiKeyService, ApiKeyService>();
 builder.Services.AddSingleton<ISupabaseRealtimeService, SupabaseRealtimeService>();
 builder.Services.AddScoped<IAzureBlobService, AzureBlobService>();
 builder.Services.AddScoped<IGeminiService, GeminiService>();
+builder.Services.AddScoped<ISimpleGeminiService, SimpleGeminiService>();
+builder.Services.AddHttpClient<ISimpleGeminiService, SimpleGeminiService>();
 // builder.Services.AddScoped<IQdrantService, QdrantService>();
 
 // Configure CORS

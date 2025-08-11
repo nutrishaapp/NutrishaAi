@@ -18,6 +18,7 @@ namespace NutrishaAI.API.Controllers
         private readonly ISupabaseRealtimeService _realtimeService;
         private readonly IAzureBlobService _blobService;
         private readonly IGeminiService _geminiService;
+        private readonly ISimpleGeminiService _simpleGeminiService;
         // private readonly IQdrantService _qdrantService;
         private readonly ILogger<ChatController> _logger;
 
@@ -26,6 +27,7 @@ namespace NutrishaAI.API.Controllers
             ISupabaseRealtimeService realtimeService,
             IAzureBlobService blobService,
             IGeminiService geminiService,
+            ISimpleGeminiService simpleGeminiService,
             // IQdrantService qdrantService,
             ILogger<ChatController> logger)
         {
@@ -33,6 +35,7 @@ namespace NutrishaAI.API.Controllers
             _realtimeService = realtimeService;
             _blobService = blobService;
             _geminiService = geminiService;
+            _simpleGeminiService = simpleGeminiService;
             // _qdrantService = qdrantService;
             _logger = logger;
         }
@@ -215,16 +218,24 @@ namespace NutrishaAI.API.Controllers
                     _logger.LogWarning(ex, "Failed to send realtime message for conversation {ConversationId}", request.ConversationId);
                 }
 
-                // Process message with Gemini AI and generate response
+                // Generate AI response with SimpleGeminiService
                 try
                 {
-                    // Extract health data from the message
-                    var healthData = await _geminiService.ExtractHealthDataAsync(request.Content ?? "", "text");
+                    // Get recent conversation context
+                    var recentMessages = await _supabaseClient
+                        .From<Message>()
+                        .Where(m => m.ConversationId == request.ConversationId)
+                        .Order(m => m.CreatedAt, Supabase.Postgrest.Constants.Ordering.Descending)
+                        .Limit(5)
+                        .Get();
+
+                    var conversationContext = string.Join("\n", 
+                        recentMessages.Models.Select(m => $"{(m.IsAiGenerated ? "AI" : "User")}: {m.Content}"));
                     
-                    // Generate AI response
-                    var aiResponseText = await _geminiService.ProcessTextAsync(
+                    // Generate AI nutritionist response
+                    var aiResponseText = await _simpleGeminiService.GenerateNutritionistResponseAsync(
                         request.Content ?? "", 
-                        "Previous conversation context and user's health data");
+                        conversationContext);
                     
                     // Create AI response message
                     if (!string.IsNullOrEmpty(aiResponseText))
@@ -237,7 +248,7 @@ namespace NutrishaAI.API.Controllers
                             Content = aiResponseText,
                             MessageType = "text",
                             IsAiGenerated = true,
-                            CreatedAt = DateTime.UtcNow
+                            CreatedAt = DateTime.UtcNow.AddSeconds(1) // Ensure AI message comes after user message
                         };
 
                         await _supabaseClient
@@ -245,7 +256,14 @@ namespace NutrishaAI.API.Controllers
                             .Insert(aiMessage);
 
                         // Send AI response via Realtime
-                        await _realtimeService.SendMessageAsync(request.ConversationId, aiMessage);
+                        try
+                        {
+                            await _realtimeService.SendMessageAsync(request.ConversationId, aiMessage);
+                        }
+                        catch (Exception realtimeEx)
+                        {
+                            _logger.LogWarning(realtimeEx, "Failed to send AI response via realtime for conversation {ConversationId}", request.ConversationId);
+                        }
                     }
                     
                     // Store health data in Qdrant vector database

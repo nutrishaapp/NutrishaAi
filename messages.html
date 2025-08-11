@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutrishaAI - Messages</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --accent-color: #f093fb;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --info-color: #3498db;
+            --sidebar-width: 280px;
+            --header-height: 70px;
+            --border-radius: 12px;
+            --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--dark-color);
+        }
+
+        .messages-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .logo-text {
+            font-size: 18px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .back-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            margin: 10px 20px;
+            border-radius: 8px;
+            transition: var(--transition);
+            font-size: 14px;
+        }
+
+        .back-link:hover {
+            background: var(--light-color);
+        }
+
+        .conversations-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .conversations-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .new-conversation-btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .new-conversation-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .conversations-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 0;
+        }
+
+        .conversation-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .conversation-item:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .conversation-item.active {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+
+        .conversation-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--info-color), #5dade2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .conversation-info {
+            flex: 1;
+        }
+
+        .conversation-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .conversation-preview {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .conversation-meta {
+            font-size: 11px;
+            opacity: 0.6;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+        }
+
+        .chat-header {
+            height: var(--header-height);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+        }
+
+        .chat-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .chat-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .action-btn {
+            background: none;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .action-btn:hover {
+            background: var(--light-color);
+        }
+
+        .action-btn.primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+        }
+
+        .messages-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            display: flex;
+            gap: 12px;
+            max-width: 80%;
+        }
+
+        .message.sent {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        .message-content {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 12px 15px;
+            box-shadow: var(--box-shadow);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .message.sent .message-content {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+
+        .message-text {
+            font-size: 14px;
+            line-height: 1.4;
+            margin-bottom: 5px;
+        }
+
+        .message-time {
+            font-size: 11px;
+            opacity: 0.6;
+        }
+
+        .message-input-area {
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            background: white;
+        }
+
+        .message-input-container {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .message-input {
+            flex: 1;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            padding: 12px 20px;
+            resize: none;
+            font-family: inherit;
+            font-size: 14px;
+            max-height: 120px;
+            transition: var(--transition);
+        }
+
+        .message-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Empty State */
+        .empty-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .empty-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+
+        .empty-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--dark-color);
+        }
+
+        .empty-description {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: var(--box-shadow);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #666;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+
+        .modal-close:hover {
+            background: var(--light-color);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark-color);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: var(--transition);
+            border: none;
+        }
+
+        .btn-secondary {
+            background: var(--light-color);
+            color: var(--dark-color);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Loading */
+        .loading {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .messages-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+            }
+            
+            .conversation-item {
+                padding: 12px 15px;
+            }
+            
+            .messages-area {
+                padding: 15px;
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="messages-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">N</div>
+                <div class="logo-text">NutrishaAI</div>
+            </div>
+            
+            <a href="dashboard.html" class="back-link">
+                <i class="fas fa-arrow-left"></i>
+                Back to Dashboard
+            </a>
+
+            <div class="conversations-header">
+                <h3 class="conversations-title">Conversations</h3>
+                <button class="new-conversation-btn" id="newConversationBtn">
+                    <i class="fas fa-plus"></i>
+                    New
+                </button>
+            </div>
+
+            <div class="conversations-list" id="conversationsList">
+                <!-- Conversations will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="chat-header">
+                <h2 class="chat-title" id="chatTitle">Select a conversation</h2>
+                <div class="chat-actions">
+                    <button class="action-btn" id="refreshBtn">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh
+                    </button>
+                    <button class="action-btn primary" id="aiChatBtn">
+                        <i class="fas fa-robot"></i>
+                        AI Chat
+                    </button>
+                </div>
+            </div>
+
+            <div class="messages-area" id="messagesArea">
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <h3 class="empty-title">Welcome to Messages</h3>
+                    <p class="empty-description">
+                        Select a conversation to start chatting, or create a new one to get started.
+                    </p>
+                    <button class="btn btn-primary" id="createFirstConversation">
+                        <i class="fas fa-plus"></i>
+                        Create New Conversation
+                    </button>
+                </div>
+            </div>
+
+            <div class="message-input-area" id="messageInputArea" style="display: none;">
+                <div class="message-input-container">
+                    <textarea 
+                        class="message-input" 
+                        id="messageInput" 
+                        placeholder="Type your message..."
+                        rows="1"
+                    ></textarea>
+                    <button class="send-btn" id="sendBtn">
+                        <i class="fas fa-paper-plane"></i>
+                        Send
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Conversation Modal -->
+    <div class="modal" id="newConversationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">New Conversation</h3>
+                <button class="modal-close" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="newConversationForm">
+                <div class="form-group">
+                    <label class="form-label" for="conversationTitle">Conversation Title</label>
+                    <input 
+                        type="text" 
+                        class="form-input" 
+                        id="conversationTitle" 
+                        placeholder="Enter conversation title..."
+                        required
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="nutritionistId">Nutritionist (Optional)</label>
+                    <input 
+                        type="text" 
+                        class="form-input" 
+                        id="nutritionistId" 
+                        placeholder="Nutritionist ID (leave empty for AI-only chat)"
+                    >
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelModal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="createConversationBtn">
+                        Create Conversation
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5133';
+        let currentConversationId = null;
+        let conversations = [];
+        let currentUser = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+            initializeMessages();
+        });
+
+        function checkAuth() {
+            const token = localStorage.getItem('authToken');
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            
+            if (!token) {
+                window.location.href = 'signin.html';
+                return;
+            }
+            
+            currentUser = user;
+        }
+
+        function initializeMessages() {
+            // Load conversations
+            loadConversations();
+            
+            // Event listeners
+            document.getElementById('newConversationBtn').addEventListener('click', showNewConversationModal);
+            document.getElementById('createFirstConversation').addEventListener('click', showNewConversationModal);
+            document.getElementById('closeModal').addEventListener('click', hideNewConversationModal);
+            document.getElementById('cancelModal').addEventListener('click', hideNewConversationModal);
+            document.getElementById('newConversationForm').addEventListener('submit', createConversation);
+            document.getElementById('sendBtn').addEventListener('click', sendMessage);
+            document.getElementById('refreshBtn').addEventListener('click', loadConversations);
+            document.getElementById('aiChatBtn').addEventListener('click', startAiChat);
+            
+            // Auto-resize message input
+            const messageInput = document.getElementById('messageInput');
+            messageInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+            });
+            
+            // Send message on Enter (Shift+Enter for new line)
+            messageInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+        }
+
+        async function loadConversations() {
+            try {
+                const token = localStorage.getItem('authToken');
+                const response = await fetch(`${API_URL}/api/chat/conversations`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    conversations = await response.json();
+                    displayConversations();
+                } else {
+                    console.error('Failed to load conversations');
+                }
+            } catch (error) {
+                console.error('Error loading conversations:', error);
+            }
+        }
+
+        function displayConversations() {
+            const conversationsList = document.getElementById('conversationsList');
+            
+            if (conversations.length === 0) {
+                conversationsList.innerHTML = `
+                    <div style="padding: 20px; text-align: center; color: #666;">
+                        <i class="fas fa-inbox" style="font-size: 32px; margin-bottom: 10px; opacity: 0.5;"></i>
+                        <p>No conversations yet</p>
+                        <p style="font-size: 12px; margin-top: 5px;">Create your first conversation to get started</p>
+                    </div>
+                `;
+                return;
+            }
+
+            conversationsList.innerHTML = conversations.map(conv => `
+                <div class="conversation-item" data-id="${conv.id}" onclick="selectConversation('${conv.id}')">
+                    <div class="conversation-avatar">${conv.title?.charAt(0).toUpperCase() || 'C'}</div>
+                    <div class="conversation-info">
+                        <div class="conversation-title">${conv.title || 'Untitled Conversation'}</div>
+                        <div class="conversation-preview">
+                            ${conv.lastMessage || 'No messages yet'}
+                        </div>
+                        <div class="conversation-meta">
+                            ${conv.createdAt ? new Date(conv.createdAt).toLocaleDateString() : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function selectConversation(conversationId) {
+            currentConversationId = conversationId;
+            
+            // Update UI
+            document.querySelectorAll('.conversation-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector(`[data-id="${conversationId}"]`).classList.add('active');
+            
+            // Load conversation details
+            loadConversationMessages(conversationId);
+            
+            // Show message input area
+            document.getElementById('messageInputArea').style.display = 'block';
+            
+            // Update header
+            const conversation = conversations.find(c => c.id === conversationId);
+            document.getElementById('chatTitle').textContent = conversation?.title || 'Conversation';
+        }
+
+        async function loadConversationMessages(conversationId) {
+            try {
+                const token = localStorage.getItem('authToken');
+                const response = await fetch(`${API_URL}/api/chat/messages/${conversationId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const messages = await response.json();
+                    displayMessages(messages);
+                } else {
+                    console.error('Failed to load messages');
+                }
+            } catch (error) {
+                console.error('Error loading messages:', error);
+            }
+        }
+
+        function displayMessages(messages) {
+            const messagesArea = document.getElementById('messagesArea');
+            
+            if (messages.length === 0) {
+                messagesArea.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-comment"></i>
+                        </div>
+                        <h3 class="empty-title">Start the conversation</h3>
+                        <p class="empty-description">
+                            Send the first message to get this conversation started.
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            messagesArea.innerHTML = messages.map(message => `
+                <div class="message ${message.senderId === currentUser.id ? 'sent' : ''}">
+                    <div class="message-avatar">
+                        ${message.senderName?.charAt(0).toUpperCase() || 'U'}
+                    </div>
+                    <div class="message-content">
+                        <div class="message-text">${message.content}</div>
+                        <div class="message-time">
+                            ${new Date(message.createdAt).toLocaleTimeString()}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Scroll to bottom
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        }
+
+        function showNewConversationModal() {
+            document.getElementById('newConversationModal').classList.add('show');
+            document.getElementById('conversationTitle').focus();
+        }
+
+        function hideNewConversationModal() {
+            document.getElementById('newConversationModal').classList.remove('show');
+            document.getElementById('newConversationForm').reset();
+        }
+
+        async function createConversation(e) {
+            e.preventDefault();
+            
+            const title = document.getElementById('conversationTitle').value;
+            const nutritionistId = document.getElementById('nutritionistId').value;
+            const createBtn = document.getElementById('createConversationBtn');
+            
+            // Show loading
+            createBtn.innerHTML = '<div class="loading"><div class="spinner"></div>Creating...</div>';
+            createBtn.disabled = true;
+            
+            try {
+                const token = localStorage.getItem('authToken');
+                const response = await fetch(`${API_URL}/api/chat/conversations`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        nutritionistId: nutritionistId || null
+                    })
+                });
+
+                if (response.ok) {
+                    const newConversation = await response.json();
+                    hideNewConversationModal();
+                    loadConversations();
+                    
+                    // Auto-select the new conversation
+                    setTimeout(() => {
+                        selectConversation(newConversation.id);
+                    }, 500);
+                } else {
+                    const error = await response.json();
+                    alert('Failed to create conversation: ' + (error.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error creating conversation:', error);
+                alert('Error creating conversation. Please try again.');
+            } finally {
+                createBtn.innerHTML = 'Create Conversation';
+                createBtn.disabled = false;
+            }
+        }
+
+        async function sendMessage() {
+            if (!currentConversationId) return;
+            
+            const messageInput = document.getElementById('messageInput');
+            const content = messageInput.value.trim();
+            
+            if (!content) return;
+            
+            const sendBtn = document.getElementById('sendBtn');
+            sendBtn.innerHTML = '<div class="loading"><div class="spinner"></div>Sending...</div>';
+            sendBtn.disabled = true;
+            
+            try {
+                const token = localStorage.getItem('authToken');
+                const response = await fetch(`${API_URL}/api/chat/send`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        conversationId: currentConversationId,
+                        content: content,
+                        messageType: 'text'
+                    })
+                });
+
+                if (response.ok) {
+                    messageInput.value = '';
+                    messageInput.style.height = 'auto';
+                    loadConversationMessages(currentConversationId);
+                } else {
+                    const error = await response.json();
+                    alert('Failed to send message: ' + (error.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+                alert('Error sending message. Please try again.');
+            } finally {
+                sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>Send';
+                sendBtn.disabled = false;
+            }
+        }
+
+        async function startAiChat() {
+            if (!currentConversationId) {
+                alert('Please select a conversation first');
+                return;
+            }
+            
+            const message = prompt('Ask the AI nutritionist:');
+            if (!message) return;
+            
+            try {
+                const token = localStorage.getItem('authToken');
+                const response = await fetch(`${API_URL}/api/chat/ai-chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        extractHealthData: true
+                    })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    
+                    // Add the AI response as a message to the current conversation
+                    await fetch(`${API_URL}/api/chat/send`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            conversationId: currentConversationId,
+                            content: `AI Response: ${result.response}`,
+                            messageType: 'ai'
+                        })
+                    });
+                    
+                    loadConversationMessages(currentConversationId);
+                } else {
+                    const error = await response.json();
+                    alert('AI chat failed: ' + (error.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error with AI chat:', error);
+                alert('Error with AI chat. Please try again.');
+            }
+        }
+    </script>
+</body>
+</html>

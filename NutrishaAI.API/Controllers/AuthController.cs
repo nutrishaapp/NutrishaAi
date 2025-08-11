@@ -33,31 +33,41 @@ namespace NutrishaAI.API.Controllers
         {
             try
             {
-                // Register with Supabase Auth
-                var session = await _supabaseClient.Auth.SignUp(request.Email, request.Password);
+                // Register with Supabase Auth with user metadata
+                var options = new Supabase.Gotrue.SignUpOptions
+                {
+                    Data = new Dictionary<string, object>
+                    {
+                        { "full_name", request.FullName ?? "" },
+                        { "role", request.Role ?? "patient" },
+                        { "phone_number", request.PhoneNumber ?? "" },
+                        { "date_of_birth", request.DateOfBirth?.ToString("yyyy-MM-dd") ?? "" },
+                        { "gender", request.Gender ?? "" }
+                    }
+                };
+
+                var session = await _supabaseClient.Auth.SignUp(request.Email, request.Password, options);
 
                 if (session?.User == null)
                 {
                     return BadRequest(new { error = "Registration failed" });
                 }
 
-                // Create user profile in our users table
-                var user = new Core.Entities.User
+                // Create corresponding record in public.users for API integrations
+                var userProfile = new Core.Entities.User
                 {
                     Id = Guid.Parse(session.User.Id),
                     Email = request.Email,
-                    FullName = request.FullName,
-                    Role = request.Role,
-                    PhoneNumber = request.PhoneNumber,
+                    FullName = request.FullName ?? "",
+                    Role = request.Role ?? "patient",
+                    PhoneNumber = request.PhoneNumber ?? "",
                     DateOfBirth = request.DateOfBirth,
-                    Gender = request.Gender,
+                    Gender = request.Gender ?? "",
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
 
-                await _supabaseClient
-                    .From<Core.Entities.User>()
-                    .Insert(user);
+                await _supabaseClient.From<Core.Entities.User>().Insert(userProfile);
 
                 var response = new AuthResponse
                 {
@@ -68,8 +78,8 @@ namespace NutrishaAI.API.Controllers
                     {
                         Id = Guid.Parse(session.User.Id),
                         Email = request.Email,
-                        FullName = request.FullName,
-                        Role = request.Role
+                        FullName = request.FullName ?? session.User.Email,
+                        Role = request.Role ?? "patient"
                     }
                 };
 
@@ -94,12 +104,46 @@ namespace NutrishaAI.API.Controllers
                     return Unauthorized(new { error = "Invalid credentials" });
                 }
 
-                // Get user profile
-                var userProfile = await _supabaseClient
-                    .From<Core.Entities.User>()
-                    .Where(x => x.Id == Guid.Parse(session.User.Id))
-                    .Single();
+                // Get user metadata from auth.users
+                var userMetadata = session.User.UserMetadata;
 
+                // Ensure public.users record exists for API integrations
+                var userId = Guid.Parse(session.User.Id);
+                Core.Entities.User? userProfile = null;
+                try {
+                    userProfile = await _supabaseClient
+                        .From<Core.Entities.User>()
+                        .Where(x => x.Id == userId)
+                        .Single();
+                } catch {
+                    // Create public.users record from auth.users metadata
+                    userProfile = new Core.Entities.User
+                    {
+                        Id = userId,
+                        Email = session.User.Email,
+                        FullName = userMetadata?.ContainsKey("full_name") == true ? 
+                            userMetadata["full_name"]?.ToString() ?? session.User.Email : 
+                            session.User.Email,
+                        Role = userMetadata?.ContainsKey("role") == true ? 
+                            userMetadata["role"]?.ToString() ?? "patient" : 
+                            "patient",
+                        PhoneNumber = userMetadata?.ContainsKey("phone_number") == true ? 
+                            userMetadata["phone_number"]?.ToString() ?? "" : "",
+                        Gender = userMetadata?.ContainsKey("gender") == true ? 
+                            userMetadata["gender"]?.ToString() ?? "" : "",
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+
+                    if (userMetadata?.ContainsKey("date_of_birth") == true && 
+                        DateTime.TryParse(userMetadata["date_of_birth"]?.ToString(), out var dob))
+                    {
+                        userProfile.DateOfBirth = dob;
+                    }
+
+                    await _supabaseClient.From<Core.Entities.User>().Insert(userProfile);
+                }
+                
                 var response = new AuthResponse
                 {
                     AccessToken = session.AccessToken,
@@ -109,8 +153,12 @@ namespace NutrishaAI.API.Controllers
                     {
                         Id = Guid.Parse(session.User.Id),
                         Email = session.User.Email,
-                        FullName = userProfile?.FullName ?? "",
-                        Role = userProfile?.Role ?? "patient"
+                        FullName = userMetadata?.ContainsKey("full_name") == true ? 
+                            userMetadata["full_name"]?.ToString() ?? session.User.Email : 
+                            session.User.Email,
+                        Role = userMetadata?.ContainsKey("role") == true ? 
+                            userMetadata["role"]?.ToString() ?? "patient" : 
+                            "patient"
                     }
                 };
 
@@ -135,6 +183,9 @@ namespace NutrishaAI.API.Controllers
                     return Unauthorized(new { error = "Invalid refresh token" });
                 }
 
+                // Get user metadata from auth.users
+                var userMetadata = session.User.UserMetadata;
+
                 var response = new AuthResponse
                 {
                     AccessToken = session.AccessToken,
@@ -144,8 +195,12 @@ namespace NutrishaAI.API.Controllers
                     {
                         Id = Guid.Parse(session.User.Id),
                         Email = session.User.Email,
-                        FullName = "",
-                        Role = "patient"
+                        FullName = userMetadata?.ContainsKey("full_name") == true ? 
+                            userMetadata["full_name"]?.ToString() ?? session.User.Email : 
+                            session.User.Email,
+                        Role = userMetadata?.ContainsKey("role") == true ? 
+                            userMetadata["role"]?.ToString() ?? "patient" : 
+                            "patient"
                     }
                 };
 

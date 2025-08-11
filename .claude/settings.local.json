@@ -31,7 +31,9 @@
       "Bash(git add:*)",
       "Bash(lsof:*)",
       "Bash(kill:*)",
-      "Bash(open:*)"
+      "Bash(open:*)",
+      "Bash(chmod:*)",
+      "Bash(python3:*)"
     ],
     "deny": []
   }

@@ -263,21 +263,23 @@
                     alertBox.textContent = 'Login successful! Redirecting...';
                     
                     // Store tokens
-                    if (data.token) {
-                        localStorage.setItem('auth_token', data.token);
+                    if (data.accessToken) {
+                        localStorage.setItem('authToken', data.accessToken);
                     }
                     if (data.refreshToken) {
-                        localStorage.setItem('refresh_token', data.refreshToken);
+                        localStorage.setItem('refreshToken', data.refreshToken);
                     }
                     if (data.user) {
                         localStorage.setItem('user', JSON.stringify(data.user));
                     }
                     
-                    // Redirect after 2 seconds
+                    // Update success message
+                    alertBox.className = 'alert alert-success show';
+                    alertBox.textContent = 'Login successful! Redirecting to dashboard...';
+                    
+                    // Redirect to dashboard after 1.5 seconds
                     setTimeout(() => {
-                        // You can redirect to a dashboard page
-                        alert('Login successful! Token stored in localStorage.\n\nToken: ' + data.token);
-                        console.log('Login response:', data);
+                        window.location.href = 'dashboard.html';
                     }, 1500);
                     
                 } else {

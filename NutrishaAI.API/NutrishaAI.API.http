@@ -1,0 +1,6 @@
+@NutrishaAI.API_HostAddress = http://localhost:5133
+
+GET {{NutrishaAI.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

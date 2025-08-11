@@ -1,0 +1,7 @@
+<Project>
+  <Target Name="RemoveDuplicateAttributes" BeforeTargets="GenerateAssemblyInfo">
+    <ItemGroup>
+      <AssemblyAttribute Remove="System.Runtime.Versioning.TargetFrameworkAttribute" />
+    </ItemGroup>
+  </Target>
+</Project>

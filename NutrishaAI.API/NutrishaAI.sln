@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NutrishaAI.API", "NutrishaAI.API.csproj", "{EA51F2E0-921A-4385-A690-003DB2A2A7C9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NutrishaAI.Core", "NutrishaAI.Core\NutrishaAI.Core.csproj", "{87FF8974-9878-4833-9DAD-AB37CD2B4913}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NutrishaAI.Infrastructure", "NutrishaAI.Infrastructure\NutrishaAI.Infrastructure.csproj", "{F767A218-3677-40EC-821A-C9B9BB238B03}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EA51F2E0-921A-4385-A690-003DB2A2A7C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA51F2E0-921A-4385-A690-003DB2A2A7C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA51F2E0-921A-4385-A690-003DB2A2A7C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA51F2E0-921A-4385-A690-003DB2A2A7C9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{87FF8974-9878-4833-9DAD-AB37CD2B4913}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87FF8974-9878-4833-9DAD-AB37CD2B4913}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87FF8974-9878-4833-9DAD-AB37CD2B4913}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87FF8974-9878-4833-9DAD-AB37CD2B4913}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F767A218-3677-40EC-821A-C9B9BB238B03}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F767A218-3677-40EC-821A-C9B9BB238B03}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F767A218-3677-40EC-821A-C9B9BB238B03}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F767A218-3677-40EC-821A-C9B9BB238B03}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

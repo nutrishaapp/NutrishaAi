@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet new:*)",
+      "Bash(dotnet sln add:*)",
+      "Bash(dotnet add reference:*)",
+      "Bash(dotnet add package:*)",
+      "Bash(dotnet add:*)",
+      "Bash(dotnet add package Polly)",
+      "Bash(mkdir:*)",
+      "Bash(dotnet build)",
+      "Bash(dotnet clean:*)",
+      "Bash(dotnet run:*)",
+      "Bash(find:*)",
+      "Bash(true)",
+      "Bash(dotnet restore:*)",
+      "Bash(timeout:*)",
+      "Bash(gtimeout:*)",
+      "Bash(dotnet build:*)",
+      "Bash(rm:*)",
+      "Bash(/bashes)",
+      "Bash(git init:*)"
+    ],
+    "deny": []
+  }
+}

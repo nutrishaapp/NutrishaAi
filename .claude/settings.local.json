@@ -28,7 +28,10 @@
       "Bash(curl:*)",
       "Bash(sed:*)",
       "Bash(mv:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(lsof:*)",
+      "Bash(kill:*)",
+      "Bash(open:*)"
     ],
     "deny": []
   }

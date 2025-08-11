@@ -16,12 +16,14 @@ namespace NutrishaAI.API.Models.Responses
     public class MediaAttachmentResponse
     {
         public Guid Id { get; set; }
+        public Guid MessageId { get; set; }
         public string FileUrl { get; set; } = string.Empty;
         public string? FileType { get; set; }
         public int? FileSize { get; set; }
         public string? FileName { get; set; }
         public string? ThumbnailUrl { get; set; }
         public string? Transcription { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 
     public class ConversationResponse
@@ -53,5 +55,12 @@ namespace NutrishaAI.API.Models.Responses
         public string UploadUrl { get; set; } = string.Empty;
         public string BlobName { get; set; } = string.Empty;
         public int ExpiresIn { get; set; }
+    }
+
+    public class DirectAiChatResponse
+    {
+        public string AiResponse { get; set; } = string.Empty;
+        public object? ExtractedHealthData { get; set; }
+        public DateTime ProcessedAt { get; set; }
     }
 }

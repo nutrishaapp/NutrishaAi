@@ -1,0 +1,384 @@
+using Qdrant.Client;
+using Qdrant.Client.Grpc;
+using System.Text.Json;
+
+namespace NutrishaAI.API.Services
+{
+    public interface IQdrantService
+    {
+        Task InitializeCollectionAsync();
+        Task<string> StoreConversationDataAsync(ConversationEmbedding data);
+        Task<List<ConversationSearchResult>> SearchSimilarConversationsAsync(string query, Guid userId, int limit = 10);
+        Task<List<ConversationSearchResult>> SearchHealthDataAsync(string healthQuery, Guid userId, int limit = 5);
+        Task DeleteUserDataAsync(Guid userId);
+        Task<ConversationEmbedding?> GetConversationDataAsync(string pointId);
+    }
+
+    public class QdrantService : IQdrantService
+    {
+        private readonly QdrantClient _qdrantClient;
+        private readonly IConfiguration _configuration;
+        private readonly ILogger<QdrantService> _logger;
+        private readonly IGeminiService _geminiService;
+        private readonly string _collectionName;
+
+        public QdrantService(
+            IConfiguration configuration,
+            ILogger<QdrantService> logger,
+            IGeminiService geminiService)
+        {
+            _configuration = configuration;
+            _logger = logger;
+            _geminiService = geminiService;
+            _collectionName = configuration["Qdrant:CollectionName"] ?? "nutrisha_conversations";
+
+            var host = configuration["Qdrant:Host"] ?? "localhost";
+            var port = configuration.GetValue<int>("Qdrant:Port", 6334);
+            var apiKey = configuration["Qdrant:ApiKey"];
+
+            _qdrantClient = new QdrantClient(host, port, https: false, apiKey);
+        }
+
+        public async Task InitializeCollectionAsync()
+        {
+            try
+            {
+                // Check if collection exists
+                var collections = await _qdrantClient.ListCollectionsAsync();
+                var collectionExists = collections.Any(c => c.Name == _collectionName);
+
+                if (!collectionExists)
+                {
+                    // Create collection with appropriate vector configuration
+                    await _qdrantClient.CreateCollectionAsync(_collectionName, new VectorParams
+                    {
+                        Size = 1536, // OpenAI/Gemini embedding dimension
+                        Distance = Distance.Cosine
+                    });
+
+                    _logger.LogInformation("Created Qdrant collection: {CollectionName}", _collectionName);
+                }
+                else
+                {
+                    _logger.LogInformation("Qdrant collection already exists: {CollectionName}", _collectionName);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error initializing Qdrant collection: {CollectionName}", _collectionName);
+                throw;
+            }
+        }
+
+        public async Task<string> StoreConversationDataAsync(ConversationEmbedding data)
+        {
+            try
+            {
+                // Generate embedding for the conversation content
+                var embedding = await GenerateEmbeddingAsync(data.Content);
+                
+                var pointId = Guid.NewGuid().ToString();
+
+                var point = new PointStruct
+                {
+                    Id = pointId,
+                    Vectors = embedding,
+                    Payload = 
+                    {
+                        ["user_id"] = data.UserId.ToString(),
+                        ["conversation_id"] = data.ConversationId.ToString(),
+                        ["message_id"] = data.MessageId?.ToString() ?? "",
+                        ["content"] = data.Content,
+                        ["content_type"] = data.ContentType,
+                        ["timestamp"] = data.Timestamp.ToString("O"),
+                        ["health_data"] = JsonSerializer.Serialize(data.ExtractedHealthData),
+                        ["message_type"] = data.MessageType,
+                        ["ai_response"] = data.AiResponse ?? "",
+                        ["nutritional_info"] = JsonSerializer.Serialize(data.NutritionalInfo ?? new Dictionary<string, object>()),
+                        ["sentiment"] = data.Sentiment ?? "neutral",
+                        ["priority"] = data.Priority
+                    }
+                };
+
+                await _qdrantClient.UpsertAsync(_collectionName, [point]);
+
+                _logger.LogInformation("Stored conversation data in Qdrant with ID: {PointId}", pointId);
+                return pointId;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error storing conversation data in Qdrant");
+                throw;
+            }
+        }
+
+        public async Task<List<ConversationSearchResult>> SearchSimilarConversationsAsync(string query, Guid userId, int limit = 10)
+        {
+            try
+            {
+                var queryEmbedding = await GenerateEmbeddingAsync(query);
+
+                var searchResult = await _qdrantClient.SearchAsync(_collectionName, queryEmbedding, 
+                    limit: (ulong)limit,
+                    filter: Filter.Match("user_id", userId.ToString()));
+
+                var results = new List<ConversationSearchResult>();
+
+                foreach (var result in searchResult)
+                {
+                    var payload = result.Payload;
+                    var conversationResult = new ConversationSearchResult
+                    {
+                        Id = result.Id.ToString(),
+                        ConversationId = Guid.Parse(payload["conversation_id"].StringValue),
+                        MessageId = !string.IsNullOrEmpty(payload["message_id"].StringValue) 
+                            ? Guid.Parse(payload["message_id"].StringValue) 
+                            : null,
+                        Content = payload["content"].StringValue,
+                        ContentType = payload["content_type"].StringValue,
+                        Timestamp = DateTime.Parse(payload["timestamp"].StringValue),
+                        Score = result.Score,
+                        MessageType = payload["message_type"].StringValue,
+                        AiResponse = payload["ai_response"].StringValue,
+                        Sentiment = payload["sentiment"].StringValue
+                    };
+
+                    // Parse health data
+                    if (!string.IsNullOrEmpty(payload["health_data"].StringValue))
+                    {
+                        try
+                        {
+                            conversationResult.ExtractedHealthData = 
+                                JsonSerializer.Deserialize<Dictionary<string, object>>(payload["health_data"].StringValue);
+                        }
+                        catch (JsonException ex)
+                        {
+                            _logger.LogWarning(ex, "Failed to parse health data for point {PointId}", result.Id);
+                        }
+                    }
+
+                    results.Add(conversationResult);
+                }
+
+                _logger.LogInformation("Found {Count} similar conversations for user {UserId}", results.Count, userId);
+                return results;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error searching similar conversations in Qdrant");
+                throw;
+            }
+        }
+
+        public async Task<List<ConversationSearchResult>> SearchHealthDataAsync(string healthQuery, Guid userId, int limit = 5)
+        {
+            try
+            {
+                // Enhance health query for better matching
+                var enhancedQuery = $"health nutrition diet food exercise symptoms medical {healthQuery}";
+                var queryEmbedding = await GenerateEmbeddingAsync(enhancedQuery);
+
+                var searchResult = await _qdrantClient.SearchAsync(_collectionName, queryEmbedding,
+                    limit: (ulong)limit,
+                    filter: Filter.Must(
+                        Filter.Match("user_id", userId.ToString()),
+                        Filter.IsNotEmpty("health_data")
+                    ));
+
+                var results = new List<ConversationSearchResult>();
+
+                foreach (var result in searchResult)
+                {
+                    var payload = result.Payload;
+                    var conversationResult = new ConversationSearchResult
+                    {
+                        Id = result.Id.ToString(),
+                        ConversationId = Guid.Parse(payload["conversation_id"].StringValue),
+                        MessageId = !string.IsNullOrEmpty(payload["message_id"].StringValue)
+                            ? Guid.Parse(payload["message_id"].StringValue)
+                            : null,
+                        Content = payload["content"].StringValue,
+                        ContentType = payload["content_type"].StringValue,
+                        Timestamp = DateTime.Parse(payload["timestamp"].StringValue),
+                        Score = result.Score,
+                        MessageType = payload["message_type"].StringValue,
+                        AiResponse = payload["ai_response"].StringValue,
+                        Sentiment = payload["sentiment"].StringValue
+                    };
+
+                    // Parse health data and nutritional info
+                    if (!string.IsNullOrEmpty(payload["health_data"].StringValue))
+                    {
+                        try
+                        {
+                            conversationResult.ExtractedHealthData = 
+                                JsonSerializer.Deserialize<Dictionary<string, object>>(payload["health_data"].StringValue);
+                        }
+                        catch (JsonException ex)
+                        {
+                            _logger.LogWarning(ex, "Failed to parse health data for point {PointId}", result.Id);
+                        }
+                    }
+
+                    if (!string.IsNullOrEmpty(payload["nutritional_info"].StringValue))
+                    {
+                        try
+                        {
+                            conversationResult.NutritionalInfo = 
+                                JsonSerializer.Deserialize<Dictionary<string, object>>(payload["nutritional_info"].StringValue);
+                        }
+                        catch (JsonException ex)
+                        {
+                            _logger.LogWarning(ex, "Failed to parse nutritional info for point {PointId}", result.Id);
+                        }
+                    }
+
+                    results.Add(conversationResult);
+                }
+
+                _logger.LogInformation("Found {Count} health-related conversations for user {UserId}", results.Count, userId);
+                return results;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error searching health data in Qdrant");
+                throw;
+            }
+        }
+
+        public async Task DeleteUserDataAsync(Guid userId)
+        {
+            try
+            {
+                await _qdrantClient.DeleteAsync(_collectionName, 
+                    Filter.Match("user_id", userId.ToString()));
+
+                _logger.LogInformation("Deleted all data for user {UserId} from Qdrant", userId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting user data from Qdrant for user {UserId}", userId);
+                throw;
+            }
+        }
+
+        public async Task<ConversationEmbedding?> GetConversationDataAsync(string pointId)
+        {
+            try
+            {
+                var result = await _qdrantClient.RetrieveAsync(_collectionName, [pointId]);
+                
+                if (!result.Any())
+                    return null;
+
+                var point = result.First();
+                var payload = point.Payload;
+
+                var conversationData = new ConversationEmbedding
+                {
+                    UserId = Guid.Parse(payload["user_id"].StringValue),
+                    ConversationId = Guid.Parse(payload["conversation_id"].StringValue),
+                    MessageId = !string.IsNullOrEmpty(payload["message_id"].StringValue) 
+                        ? Guid.Parse(payload["message_id"].StringValue) 
+                        : null,
+                    Content = payload["content"].StringValue,
+                    ContentType = payload["content_type"].StringValue,
+                    Timestamp = DateTime.Parse(payload["timestamp"].StringValue),
+                    MessageType = payload["message_type"].StringValue,
+                    AiResponse = payload["ai_response"].StringValue,
+                    Sentiment = payload["sentiment"].StringValue,
+                    Priority = (int)payload["priority"].IntegerValue
+                };
+
+                // Parse complex data
+                if (!string.IsNullOrEmpty(payload["health_data"].StringValue))
+                {
+                    conversationData.ExtractedHealthData = 
+                        JsonSerializer.Deserialize<Dictionary<string, object>>(payload["health_data"].StringValue);
+                }
+
+                if (!string.IsNullOrEmpty(payload["nutritional_info"].StringValue))
+                {
+                    conversationData.NutritionalInfo = 
+                        JsonSerializer.Deserialize<Dictionary<string, object>>(payload["nutritional_info"].StringValue);
+                }
+
+                return conversationData;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving conversation data from Qdrant for point {PointId}", pointId);
+                throw;
+            }
+        }
+
+        private async Task<float[]> GenerateEmbeddingAsync(string text)
+        {
+            try
+            {
+                // For now, we'll use a simple approach - in production, you'd want to use
+                // a proper embedding model like OpenAI's text-embedding-ada-002
+                // or implement embedding generation in Gemini service
+                
+                // Create a simple hash-based embedding (not recommended for production)
+                var hash = text.GetHashCode();
+                var random = new Random(hash);
+                var embedding = new float[1536];
+                
+                for (int i = 0; i < embedding.Length; i++)
+                {
+                    embedding[i] = (float)(random.NextDouble() * 2 - 1); // Random float between -1 and 1
+                }
+
+                // Normalize the vector
+                var magnitude = Math.Sqrt(embedding.Sum(x => x * x));
+                if (magnitude > 0)
+                {
+                    for (int i = 0; i < embedding.Length; i++)
+                    {
+                        embedding[i] = (float)(embedding[i] / magnitude);
+                    }
+                }
+
+                return embedding;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating embedding for text");
+                throw;
+            }
+        }
+    }
+
+    public class ConversationEmbedding
+    {
+        public Guid UserId { get; set; }
+        public Guid ConversationId { get; set; }
+        public Guid? MessageId { get; set; }
+        public string Content { get; set; } = string.Empty;
+        public string ContentType { get; set; } = string.Empty;
+        public DateTime Timestamp { get; set; }
+        public Dictionary<string, object>? ExtractedHealthData { get; set; }
+        public string MessageType { get; set; } = string.Empty;
+        public string? AiResponse { get; set; }
+        public Dictionary<string, object>? NutritionalInfo { get; set; }
+        public string? Sentiment { get; set; }
+        public int Priority { get; set; } = 1;
+    }
+
+    public class ConversationSearchResult
+    {
+        public string Id { get; set; } = string.Empty;
+        public Guid ConversationId { get; set; }
+        public Guid? MessageId { get; set; }
+        public string Content { get; set; } = string.Empty;
+        public string ContentType { get; set; } = string.Empty;
+        public DateTime Timestamp { get; set; }
+        public float Score { get; set; }
+        public Dictionary<string, object>? ExtractedHealthData { get; set; }
+        public string MessageType { get; set; } = string.Empty;
+        public string AiResponse { get; set; } = string.Empty;
+        public Dictionary<string, object>? NutritionalInfo { get; set; }
+        public string Sentiment { get; set; } = string.Empty;
+    }
+}

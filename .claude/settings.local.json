@@ -19,7 +19,16 @@
       "Bash(dotnet build:*)",
       "Bash(rm:*)",
       "Bash(/bashes)",
-      "Bash(git init:*)"
+      "Bash(git init:*)",
+      "Bash(gh repo create:*)",
+      "Bash(git remote add:*)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(curl:*)",
+      "Bash(sed:*)",
+      "Bash(mv:*)",
+      "Bash(git add:*)"
     ],
     "deny": []
   }

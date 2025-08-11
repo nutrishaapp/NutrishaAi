@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NutrishaAI.API.Models.Responses;
+using NutrishaAI.API.Services;
+using NutrishaAI.Core.Entities;
+using Supabase;
 using System.Security.Claims;
 
 namespace NutrishaAI.API.Controllers
@@ -11,16 +14,24 @@ namespace NutrishaAI.API.Controllers
     public class MediaController : ControllerBase
     {
         private readonly ILogger<MediaController> _logger;
-        // TODO: Inject Azure Blob Service when implemented
-        // private readonly IAzureBlobService _blobService;
+        private readonly IAzureBlobService _blobService;
+        private readonly Client _supabaseClient;
+        private readonly IConfiguration _configuration;
 
-        public MediaController(ILogger<MediaController> logger)
+        public MediaController(
+            ILogger<MediaController> logger,
+            IAzureBlobService blobService,
+            Client supabaseClient,
+            IConfiguration configuration)
         {
             _logger = logger;
+            _blobService = blobService;
+            _supabaseClient = supabaseClient;
+            _configuration = configuration;
         }
 
-        [HttpPost("get-upload-url")]
-        public async Task<IActionResult> GetUploadUrl([FromBody] GetUploadUrlRequest request)
+        [HttpPost("upload")]
+        public async Task<IActionResult> UploadFile(IFormFile file, [FromForm] string fileType)
         {
             try
             {
@@ -28,27 +39,95 @@ namespace NutrishaAI.API.Controllers
                 if (string.IsNullOrEmpty(userId))
                     return Unauthorized();
 
-                // TODO: Implement when Azure Blob Service is ready
-                // 1. Validate file type and size
-                // 2. Generate unique blob name
-                // 3. Create presigned upload URL
-                // 4. Return URL with expiration
+                if (file == null || file.Length == 0)
+                    return BadRequest(new { error = "No file provided" });
 
-                var blobName = $"{userId}/{Guid.NewGuid()}_{request.FileName}";
-                
-                var response = new UploadUrlResponse
+                // Validate file type
+                var allowedTypes = new[] { "image", "voice", "document", "video" };
+                if (!allowedTypes.Contains(fileType.ToLowerInvariant()))
+                    return BadRequest(new { error = "Invalid file type" });
+
+                // Get container name from configuration
+                var containerName = _configuration[$"AzureStorage:ContainerNames:UserUploads"] ?? "user-uploads";
+
+                // Upload file to Azure Blob Storage
+                using var stream = file.OpenReadStream();
+                var blobName = await _blobService.UploadFileAsync(
+                    stream, 
+                    file.FileName, 
+                    containerName, 
+                    file.ContentType);
+
+                // Get blob info
+                var blobInfo = await _blobService.GetBlobInfoAsync(blobName, containerName);
+
+                var response = new UploadResponse
                 {
-                    UploadUrl = "https://placeholder-upload-url.com", // TODO: Replace with actual Azure blob URL
                     BlobName = blobName,
-                    ExpiresIn = 3600 // 1 hour
+                    OriginalFileName = file.FileName,
+                    Size = file.Length,
+                    ContentType = file.ContentType,
+                    FileType = fileType,
+                    Url = blobInfo.Url,
+                    UploadedAt = DateTime.UtcNow
                 };
 
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error generating upload URL");
-                return StatusCode(500, new { error = "Failed to generate upload URL" });
+                _logger.LogError(ex, "Error uploading file");
+                return StatusCode(500, new { error = "Failed to upload file" });
+            }
+        }
+
+        [HttpGet("download/{blobName}")]
+        public async Task<IActionResult> DownloadFile(string blobName, [FromQuery] string container = "user-uploads")
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized();
+
+                // TODO: Add authorization check - ensure user can access this blob
+
+                if (!await _blobService.BlobExistsAsync(blobName, container))
+                    return NotFound(new { error = "File not found" });
+
+                var blobInfo = await _blobService.GetBlobInfoAsync(blobName, container);
+                var stream = await _blobService.DownloadFileAsync(blobName, container);
+
+                return File(stream, blobInfo.ContentType, blobInfo.OriginalFileName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error downloading file {BlobName}", blobName);
+                return StatusCode(500, new { error = "Failed to download file" });
+            }
+        }
+
+        [HttpDelete("{blobName}")]
+        public async Task<IActionResult> DeleteFile(string blobName, [FromQuery] string container = "user-uploads")
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized();
+
+                // TODO: Add authorization check - ensure user can delete this blob
+
+                var deleted = await _blobService.DeleteFileAsync(blobName, container);
+                if (!deleted)
+                    return NotFound(new { error = "File not found" });
+
+                return Ok(new { message = "File deleted successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting file {BlobName}", blobName);
+                return StatusCode(500, new { error = "Failed to delete file" });
             }
         }
 
@@ -61,12 +140,22 @@ namespace NutrishaAI.API.Controllers
                 if (string.IsNullOrEmpty(userId))
                     return Unauthorized();
 
-                // TODO: Implement when database queries are ready
-                // 1. Verify user has access to the message
-                // 2. Get all attachments for the message
-                // 3. Generate download URLs if needed
+                // Get message attachments from database
+                var attachments = await _supabaseClient
+                    .From<MediaAttachment>()
+                    .Where(a => a.MessageId == messageId)
+                    .Get();
 
-                return Ok(new List<MediaAttachmentResponse>());
+                var response = attachments.Models.Select(attachment => new MediaAttachmentResponse
+                {
+                    Id = attachment.Id,
+                    MessageId = attachment.MessageId,
+                    FileUrl = attachment.FileUrl,
+                    FileType = attachment.FileType,
+                    CreatedAt = attachment.CreatedAt
+                });
+
+                return Ok(response);
             }
             catch (Exception ex)
             {
@@ -81,5 +170,16 @@ namespace NutrishaAI.API.Controllers
         public string FileType { get; set; } = string.Empty; // voice, image, document
         public string FileName { get; set; } = string.Empty;
         public long FileSize { get; set; }
+    }
+
+    public class UploadResponse
+    {
+        public string BlobName { get; set; } = string.Empty;
+        public string OriginalFileName { get; set; } = string.Empty;
+        public long Size { get; set; }
+        public string ContentType { get; set; } = string.Empty;
+        public string FileType { get; set; } = string.Empty;
+        public string Url { get; set; } = string.Empty;
+        public DateTime UploadedAt { get; set; }
     }
 }

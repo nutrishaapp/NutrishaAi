@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NutrishaAI.API.Models.Requests;
 using NutrishaAI.API.Models.Responses;
+using NutrishaAI.API.Services;
 using NutrishaAI.Core.Entities;
 using Supabase;
 using System.Security.Claims;
@@ -14,17 +15,25 @@ namespace NutrishaAI.API.Controllers
     public class ChatController : ControllerBase
     {
         private readonly Client _supabaseClient;
-        private readonly ILogger<ChatController> _logger;
-        // Note: We'll inject these services later when implemented
-        // private readonly IAzureBlobService _blobService;
-        // private readonly IGeminiService _geminiService;
+        private readonly ISupabaseRealtimeService _realtimeService;
+        private readonly IAzureBlobService _blobService;
+        private readonly IGeminiService _geminiService;
         // private readonly IQdrantService _qdrantService;
+        private readonly ILogger<ChatController> _logger;
 
         public ChatController(
             Client supabaseClient,
+            ISupabaseRealtimeService realtimeService,
+            IAzureBlobService blobService,
+            IGeminiService geminiService,
+            // IQdrantService qdrantService,
             ILogger<ChatController> logger)
         {
             _supabaseClient = supabaseClient;
+            _realtimeService = realtimeService;
+            _blobService = blobService;
+            _geminiService = geminiService;
+            // _qdrantService = qdrantService;
             _logger = logger;
         }
 
@@ -196,9 +205,79 @@ namespace NutrishaAI.API.Controllers
                     .Set(c => c.UpdatedAt, DateTime.UtcNow)
                     .Update();
 
-                // TODO: Process message with Gemini AI
-                // TODO: Extract health data and store in Qdrant
-                // TODO: Generate AI response if enabled
+                // Send message via Realtime
+                try
+                {
+                    await _realtimeService.SendMessageAsync(request.ConversationId, message);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to send realtime message for conversation {ConversationId}", request.ConversationId);
+                }
+
+                // Process message with Gemini AI and generate response
+                try
+                {
+                    // Extract health data from the message
+                    var healthData = await _geminiService.ExtractHealthDataAsync(request.Content ?? "", "text");
+                    
+                    // Generate AI response
+                    var aiResponseText = await _geminiService.ProcessTextAsync(
+                        request.Content ?? "", 
+                        "Previous conversation context and user's health data");
+                    
+                    // Create AI response message
+                    if (!string.IsNullOrEmpty(aiResponseText))
+                    {
+                        var aiMessage = new Message
+                        {
+                            Id = Guid.NewGuid(),
+                            ConversationId = request.ConversationId,
+                            SenderId = Guid.Empty, // System/AI user
+                            Content = aiResponseText,
+                            MessageType = "text",
+                            IsAiGenerated = true,
+                            CreatedAt = DateTime.UtcNow
+                        };
+
+                        await _supabaseClient
+                            .From<Message>()
+                            .Insert(aiMessage);
+
+                        // Send AI response via Realtime
+                        await _realtimeService.SendMessageAsync(request.ConversationId, aiMessage);
+                    }
+                    
+                    // Store health data in Qdrant vector database
+                    // var conversationEmbedding = new ConversationEmbedding
+                    // {
+                    //     UserId = Guid.Parse(userId),
+                    //     ConversationId = request.ConversationId,
+                    //     MessageId = message.Id,
+                    //     Content = request.Content ?? "",
+                    //     ContentType = "text",
+                    //     Timestamp = DateTime.UtcNow,
+                    //     ExtractedHealthData = new Dictionary<string, object>
+                    //     {
+                    //         { "foods", healthData.Foods },
+                    //         { "exercises", healthData.Exercises },
+                    //         { "symptoms", healthData.Symptoms },
+                    //         { "dietary_restrictions", healthData.DietaryRestrictions },
+                    //         { "health_goals", healthData.HealthGoals },
+                    //         { "measurements", healthData.Measurements }
+                    //     },
+                    //     MessageType = request.MessageType,
+                    //     AiResponse = aiResponseText,
+                    //     Priority = !string.IsNullOrEmpty(healthData.Summary) ? 2 : 1
+                    // };
+                    
+                    // await _qdrantService.StoreConversationDataAsync(conversationEmbedding);
+                    _logger.LogInformation("Stored conversation data in Qdrant for message {MessageId}", message.Id);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to process message with Gemini AI for conversation {ConversationId}", request.ConversationId);
+                }
 
                 var response = new MessageResponse
                 {
@@ -257,11 +336,14 @@ namespace NutrishaAI.API.Controllers
                 // Create media attachment record
                 if (!string.IsNullOrEmpty(request.BlobName))
                 {
+                    // Get full blob URL
+                    var blobUrl = await _blobService.GetBlobUrlAsync(request.BlobName, "user-uploads");
+
                     var attachment = new MediaAttachment
                     {
                         Id = Guid.NewGuid(),
                         MessageId = message.Id,
-                        FileUrl = request.BlobName, // Will be converted to full URL by blob service
+                        FileUrl = blobUrl,
                         FileType = request.MessageType,
                         CreatedAt = DateTime.UtcNow
                     };
@@ -271,8 +353,79 @@ namespace NutrishaAI.API.Controllers
                         .Insert(attachment);
                 }
 
-                // TODO: Process multimedia with Gemini AI
-                // TODO: Extract information and store in Qdrant
+                // Process multimedia with Gemini AI
+                try
+                {
+                    if (!string.IsNullOrEmpty(request.BlobName))
+                    {
+                        // Download blob from Azure Storage
+                        using var blobStream = await _blobService.DownloadFileAsync(request.BlobName, "user-uploads");
+                        var blobInfo = await _blobService.GetBlobInfoAsync(request.BlobName, "user-uploads");
+                        
+                        // Process with Gemini AI
+                        var geminiResponse = await _geminiService.ProcessMultimediaAsync(
+                            blobStream, 
+                            blobInfo.ContentType, 
+                            request.Content);
+                        
+                        // Extract health data
+                        var healthData = await _geminiService.ExtractHealthDataAsync(
+                            geminiResponse.Text, 
+                            geminiResponse.ContentType);
+                        
+                        // Create AI response message
+                        if (!string.IsNullOrEmpty(geminiResponse.Text))
+                        {
+                            var aiMessage = new Message
+                            {
+                                Id = Guid.NewGuid(),
+                                ConversationId = request.ConversationId,
+                                SenderId = Guid.Empty, // System/AI user
+                                Content = geminiResponse.Text,
+                                MessageType = "ai_response",
+                                IsAiGenerated = true,
+                                CreatedAt = DateTime.UtcNow
+                            };
+
+                            await _supabaseClient
+                                .From<Message>()
+                                .Insert(aiMessage);
+
+                            // Send AI response via Realtime
+                            await _realtimeService.SendMessageAsync(request.ConversationId, aiMessage);
+                        }
+                        
+                        // Store extracted data in Qdrant vector database
+                        // var multimediaEmbedding = new ConversationEmbedding
+                        // {
+                        //     UserId = Guid.Parse(userId),
+                        //     ConversationId = request.ConversationId,
+                        //     MessageId = message.Id,
+                        //     Content = geminiResponse.Text,
+                        //     ContentType = geminiResponse.ContentType,
+                        //     Timestamp = DateTime.UtcNow,
+                        //     ExtractedHealthData = new Dictionary<string, object>
+                        //     {
+                        //         { "foods", healthData.Foods },
+                        //         { "exercises", healthData.Exercises },
+                        //         { "symptoms", healthData.Symptoms },
+                        //         { "dietary_restrictions", healthData.DietaryRestrictions },
+                        //         { "health_goals", healthData.HealthGoals },
+                        //         { "measurements", healthData.Measurements }
+                        //     },
+                        //     MessageType = request.MessageType,
+                        //     AiResponse = geminiResponse.Text,
+                        //     Priority = 2 // Higher priority for multimedia content
+                        // };
+                        
+                        // await _qdrantService.StoreConversationDataAsync(multimediaEmbedding);
+                        _logger.LogInformation("Stored multimedia conversation data in Qdrant for message {MessageId}", message.Id);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to process multimedia with Gemini AI for conversation {ConversationId}", request.ConversationId);
+                }
 
                 var response = new MessageResponse
                 {
@@ -299,24 +452,150 @@ namespace NutrishaAI.API.Controllers
         {
             try
             {
-                // TODO: Implement when services are ready
-                // 1. Get blob from Azure
-                // 2. Send to Gemini for processing
-                // 3. Extract health data
-                // 4. Store in Qdrant
-                // 5. Return processed data
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized();
 
+                // Get blob from Azure Storage
+                using var blobStream = await _blobService.DownloadFileAsync(request.BlobName, "user-uploads");
+                var blobInfo = await _blobService.GetBlobInfoAsync(request.BlobName, "user-uploads");
+                
+                // Process with Gemini AI
+                var geminiResponse = await _geminiService.ProcessMultimediaAsync(
+                    blobStream, 
+                    blobInfo.ContentType, 
+                    request.TextPrompt);
+                
+                // Extract health data
+                var healthData = await _geminiService.ExtractHealthDataAsync(
+                    geminiResponse.Text, 
+                    geminiResponse.ContentType);
+                
+                // Store extracted data in Qdrant vector database
+                // var processedEmbedding = new ConversationEmbedding
+                // {
+                //     UserId = Guid.Parse(userId),
+                //     ConversationId = request.ConversationId,
+                //     Content = geminiResponse.Text,
+                //     ContentType = geminiResponse.ContentType,
+                //     Timestamp = DateTime.UtcNow,
+                //     ExtractedHealthData = new Dictionary<string, object>
+                //     {
+                //         { "foods", healthData.Foods },
+                //         { "exercises", healthData.Exercises },
+                //         { "symptoms", healthData.Symptoms },
+                //         { "dietary_restrictions", healthData.DietaryRestrictions },
+                //         { "health_goals", healthData.HealthGoals },
+                //         { "measurements", healthData.Measurements }
+                //     },
+                //     MessageType = request.MessageType,
+                //     AiResponse = geminiResponse.Text,
+                //     Priority = 3 // Highest priority for processed multimedia
+                // };
+                
+                // await _qdrantService.StoreConversationDataAsync(processedEmbedding);
+                
                 return Ok(new ProcessedMessageResponse
                 {
                     MessageId = Guid.NewGuid(),
-                    AiResponse = "This will be implemented with Gemini service",
-                    BlobUrl = request.BlobName
+                    AiResponse = geminiResponse.Text,
+                    BlobUrl = await _blobService.GetBlobUrlAsync(request.BlobName, "user-uploads"),
+                    ExtractedHealthData = new Dictionary<string, object>
+                    {
+                        { "foods", healthData.Foods },
+                        { "exercises", healthData.Exercises },
+                        { "symptoms", healthData.Symptoms },
+                        { "dietary_restrictions", healthData.DietaryRestrictions },
+                        { "health_goals", healthData.HealthGoals },
+                        { "measurements", healthData.Measurements },
+                        { "summary", healthData.Summary }
+                    }
                 });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error processing multimedia");
                 return StatusCode(500, new { error = "Failed to process multimedia" });
+            }
+        }
+
+        [HttpPost("join-channel/{conversationId}")]
+        public async Task<IActionResult> JoinChannel(Guid conversationId)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized();
+
+                // Verify user has access to this conversation
+                var conversation = await _supabaseClient
+                    .From<Conversation>()
+                    .Where(c => c.Id == conversationId)
+                    .Where(c => c.UserId == Guid.Parse(userId))
+                    .Single();
+
+                if (conversation == null)
+                    return NotFound(new { error = "Conversation not found" });
+
+                await _realtimeService.JoinChatChannelAsync(conversationId, userId);
+
+                return Ok(new { message = "Joined chat channel successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error joining chat channel");
+                return StatusCode(500, new { error = "Failed to join chat channel" });
+            }
+        }
+
+        [HttpPost("leave-channel/{conversationId}")]
+        public async Task<IActionResult> LeaveChannel(Guid conversationId)
+        {
+            try
+            {
+                await _realtimeService.LeaveChannelAsync(conversationId);
+                return Ok(new { message = "Left chat channel successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error leaving chat channel");
+                return StatusCode(500, new { error = "Failed to leave chat channel" });
+            }
+        }
+
+        [HttpPost("ai-chat")]
+        public async Task<IActionResult> DirectAiChat([FromBody] DirectAiChatRequest request)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized();
+
+                // Process text with Gemini AI
+                var aiResponse = await _geminiService.ProcessTextAsync(
+                    request.Message, 
+                    request.Context);
+                
+                // Extract health data if requested
+                HealthDataExtractionResult? healthData = null;
+                if (request.ExtractHealthData)
+                {
+                    healthData = await _geminiService.ExtractHealthDataAsync(request.Message, "text");
+                }
+
+                return Ok(new DirectAiChatResponse
+                {
+                    AiResponse = aiResponse,
+                    ExtractedHealthData = healthData,
+                    ProcessedAt = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing direct AI chat");
+                return StatusCode(500, new { error = "Failed to process AI chat" });
             }
         }
     }

@@ -39,11 +39,23 @@ namespace NutrishaAI.API.Models.Requests
         public Guid ConversationId { get; set; }
         
         [Required]
-        public string BlobName { get; set; }
+        public string BlobName { get; set; } = string.Empty;
         
         [Required]
-        public string MessageType { get; set; }
+        public string MessageType { get; set; } = string.Empty;
+        
+        public string? TextPrompt { get; set; }
         
         public string? AdditionalContext { get; set; }
+    }
+
+    public class DirectAiChatRequest
+    {
+        [Required]
+        public string Message { get; set; } = string.Empty;
+        
+        public string? Context { get; set; }
+        
+        public bool ExtractHealthData { get; set; } = false;
     }
 }

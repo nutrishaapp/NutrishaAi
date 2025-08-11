@@ -123,6 +123,10 @@ builder.Services.AddAuthentication(options =>
 // Register services
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<IApiKeyService, ApiKeyService>();
+builder.Services.AddSingleton<ISupabaseRealtimeService, SupabaseRealtimeService>();
+builder.Services.AddScoped<IAzureBlobService, AzureBlobService>();
+builder.Services.AddScoped<IGeminiService, GeminiService>();
+// builder.Services.AddScoped<IQdrantService, QdrantService>();
 
 // Configure CORS
 builder.Services.AddCors(options =>
@@ -181,5 +185,22 @@ app.MapHealthChecks("/health");
 app.Map("/error", () => Results.Problem());
 
 Log.Information("NutrishaAI API starting up...");
+
+// Initialize Realtime service (optional - skip if not configured)
+try
+{
+    var realtimeService = app.Services.GetRequiredService<ISupabaseRealtimeService>();
+    await realtimeService.InitializeAsync();
+    Log.Information("Supabase Realtime initialized successfully");
+}
+catch (Exception ex)
+{
+    Log.Warning("Failed to initialize Supabase Realtime: {ErrorMessage}", ex.Message);
+    Log.Information("API will continue without realtime functionality");
+}
+
+// Initialize Qdrant service (temporarily disabled)
+// var qdrantService = app.Services.GetRequiredService<IQdrantService>();
+// await qdrantService.InitializeCollectionAsync();
 
 app.Run();

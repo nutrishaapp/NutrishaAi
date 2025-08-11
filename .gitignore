@@ -403,3 +403,6 @@ FodyWeavers.xsd
 **/appsettings.Development.json
 **/appsettings.Local.json
 secrets.json
+
+# Assembly attribute files
+**/*.AssemblyAttributes.cs

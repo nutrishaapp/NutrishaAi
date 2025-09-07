@@ -35,7 +35,8 @@
       "Bash(chmod:*)",
       "Bash(python3:*)",
       "WebFetch(domain:supabase.com)",
-      "Read(//var/folders/sb/281s399j7zzbg2rbr1bh_hp00000gn/T/TemporaryItems/NSIRD_screencaptureui_CfWKwV/**)"
+      "Read(//var/folders/sb/281s399j7zzbg2rbr1bh_hp00000gn/T/TemporaryItems/NSIRD_screencaptureui_CfWKwV/**)",
+      "Bash(cat:*)"
     ],
     "deny": []
   }

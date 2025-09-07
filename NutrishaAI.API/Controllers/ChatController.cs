@@ -130,19 +130,21 @@ namespace NutrishaAI.API.Controllers
                     return Unauthorized();
 
                 // Verify user has access to this conversation
-                var conversation = await _supabaseClient
+                var conversationResult = await _supabaseClient
                     .From<Conversation>()
-                    .Where(c => c.Id == conversationId)
-                    .Where(c => c.UserId == Guid.Parse(userId))
-                    .Single();
+                    .Filter("id", Supabase.Postgrest.Constants.Operator.Equals, conversationId.ToString())
+                    .Filter("user_id", Supabase.Postgrest.Constants.Operator.Equals, userId)
+                    .Get();
+                
+                var conversation = conversationResult.Models.FirstOrDefault();
 
                 if (conversation == null)
                     return NotFound(new { error = "Conversation not found" });
 
                 var messages = await _supabaseClient
                     .From<Message>()
-                    .Where(m => m.ConversationId == conversationId)
-                    .Order(m => m.CreatedAt, Supabase.Postgrest.Constants.Ordering.Descending)
+                    .Filter("conversation_id", Supabase.Postgrest.Constants.Operator.Equals, conversationId.ToString())
+                    .Order("created_at", Supabase.Postgrest.Constants.Ordering.Descending)
                     .Limit(limit)
                     .Offset(offset)
                     .Get();
@@ -177,11 +179,13 @@ namespace NutrishaAI.API.Controllers
                     return Unauthorized();
 
                 // Verify user has access to this conversation
-                var conversation = await _supabaseClient
+                var conversationResult = await _supabaseClient
                     .From<Conversation>()
-                    .Where(c => c.Id == request.ConversationId)
-                    .Where(c => c.UserId == Guid.Parse(userId))
-                    .Single();
+                    .Filter("id", Supabase.Postgrest.Constants.Operator.Equals, request.ConversationId.ToString())
+                    .Filter("user_id", Supabase.Postgrest.Constants.Operator.Equals, userId)
+                    .Get();
+                
+                var conversation = conversationResult.Models.FirstOrDefault();
 
                 if (conversation == null)
                     return NotFound(new { error = "Conversation not found" });
@@ -201,12 +205,15 @@ namespace NutrishaAI.API.Controllers
                     .From<Message>()
                     .Insert(message);
 
-                // Update conversation's updated_at
+                // Update conversation's updated_at  
+                var conversationToUpdate = new Conversation 
+                { 
+                    Id = request.ConversationId,
+                    UpdatedAt = DateTime.UtcNow 
+                };
                 await _supabaseClient
                     .From<Conversation>()
-                    .Where(c => c.Id == request.ConversationId)
-                    .Set(c => c.UpdatedAt, DateTime.UtcNow)
-                    .Update();
+                    .Upsert(conversationToUpdate);
 
                 // Send message via Realtime
                 try
@@ -224,8 +231,8 @@ namespace NutrishaAI.API.Controllers
                     // Get recent conversation context
                     var recentMessages = await _supabaseClient
                         .From<Message>()
-                        .Where(m => m.ConversationId == request.ConversationId)
-                        .Order(m => m.CreatedAt, Supabase.Postgrest.Constants.Ordering.Descending)
+                        .Filter("conversation_id", Supabase.Postgrest.Constants.Operator.Equals, request.ConversationId.ToString())
+                        .Order("created_at", Supabase.Postgrest.Constants.Ordering.Descending)
                         .Limit(5)
                         .Get();
 
@@ -327,11 +334,13 @@ namespace NutrishaAI.API.Controllers
                     return Unauthorized();
 
                 // Verify user has access to this conversation
-                var conversation = await _supabaseClient
+                var conversationResult = await _supabaseClient
                     .From<Conversation>()
-                    .Where(c => c.Id == request.ConversationId)
-                    .Where(c => c.UserId == Guid.Parse(userId))
-                    .Single();
+                    .Filter("id", Supabase.Postgrest.Constants.Operator.Equals, request.ConversationId.ToString())
+                    .Filter("user_id", Supabase.Postgrest.Constants.Operator.Equals, userId)
+                    .Get();
+                
+                var conversation = conversationResult.Models.FirstOrDefault();
 
                 if (conversation == null)
                     return NotFound(new { error = "Conversation not found" });
@@ -553,11 +562,13 @@ namespace NutrishaAI.API.Controllers
                     return Unauthorized();
 
                 // Verify user has access to this conversation
-                var conversation = await _supabaseClient
+                var conversationResult = await _supabaseClient
                     .From<Conversation>()
-                    .Where(c => c.Id == conversationId)
-                    .Where(c => c.UserId == Guid.Parse(userId))
-                    .Single();
+                    .Filter("id", Supabase.Postgrest.Constants.Operator.Equals, conversationId.ToString())
+                    .Filter("user_id", Supabase.Postgrest.Constants.Operator.Equals, userId)
+                    .Get();
+                
+                var conversation = conversationResult.Models.FirstOrDefault();
 
                 if (conversation == null)
                     return NotFound(new { error = "Conversation not found" });

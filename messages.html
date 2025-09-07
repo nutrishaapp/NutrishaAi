@@ -301,6 +301,80 @@
             opacity: 0.6;
         }
 
+        /* Typing indicator styles */
+        .typing-indicator {
+            display: flex;
+            gap: 12px;
+            max-width: 80%;
+            margin-bottom: 15px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .typing-indicator .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .typing-bubble {
+            background: white;
+            border-radius: 18px;
+            padding: 12px 16px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: #999;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.7;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.optimistic {
+            opacity: 0.7;
+        }
+
         .message-input-area {
             border-top: 1px solid rgba(0, 0, 0, 0.1);
             padding: 20px;
@@ -922,8 +996,48 @@
             
             if (!content) return;
             
+            // Clear input immediately for better UX
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+            
+            // Add optimistic message immediately
+            const messagesArea = document.getElementById('messagesArea');
+            const optimisticMessageId = 'optimistic-' + Date.now();
+            
+            // Add user message optimistically
+            const userMessageHtml = `
+                <div class="message sent optimistic" id="${optimisticMessageId}">
+                    <div class="message-avatar">
+                        ${currentUser.name?.charAt(0).toUpperCase() || 'U'}
+                    </div>
+                    <div class="message-content">
+                        <div class="message-text">${content}</div>
+                        <div class="message-time">
+                            ${new Date().toLocaleTimeString()}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            messagesArea.innerHTML += userMessageHtml;
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+            
+            // Add typing indicator
+            const typingIndicatorHtml = `
+                <div class="typing-indicator" id="typing-indicator">
+                    <div class="message-avatar">AI</div>
+                    <div class="typing-bubble">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
+            `;
+            
+            messagesArea.innerHTML += typingIndicatorHtml;
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+            
             const sendBtn = document.getElementById('sendBtn');
-            sendBtn.innerHTML = '<div class="loading"><div class="spinner"></div>Sending...</div>';
             sendBtn.disabled = true;
             
             try {
@@ -942,16 +1056,45 @@
                 });
 
                 if (response.ok) {
-                    messageInput.value = '';
-                    messageInput.style.height = 'auto';
-                    loadConversationMessages(currentConversationId);
+                    // Wait a bit to show typing indicator
+                    setTimeout(() => {
+                        // Remove optimistic message and typing indicator
+                        const optimisticMsg = document.getElementById(optimisticMessageId);
+                        if (optimisticMsg) optimisticMsg.remove();
+                        
+                        const typingIndicator = document.getElementById('typing-indicator');
+                        if (typingIndicator) typingIndicator.remove();
+                        
+                        // Load all messages including the AI response
+                        loadConversationMessages(currentConversationId);
+                    }, 1500); // Show typing for at least 1.5 seconds
                 } else {
+                    // Remove optimistic message and typing indicator on error
+                    const optimisticMsg = document.getElementById(optimisticMessageId);
+                    if (optimisticMsg) optimisticMsg.remove();
+                    
+                    const typingIndicator = document.getElementById('typing-indicator');
+                    if (typingIndicator) typingIndicator.remove();
+                    
                     const error = await response.json();
                     alert('Failed to send message: ' + (error.message || 'Unknown error'));
+                    
+                    // Restore the message to input
+                    messageInput.value = content;
                 }
             } catch (error) {
+                // Remove optimistic message and typing indicator on error
+                const optimisticMsg = document.getElementById(optimisticMessageId);
+                if (optimisticMsg) optimisticMsg.remove();
+                
+                const typingIndicator = document.getElementById('typing-indicator');
+                if (typingIndicator) typingIndicator.remove();
+                
                 console.error('Error sending message:', error);
                 alert('Error sending message. Please try again.');
+                
+                // Restore the message to input
+                messageInput.value = content;
             } finally {
                 sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>Send';
                 sendBtn.disabled = false;

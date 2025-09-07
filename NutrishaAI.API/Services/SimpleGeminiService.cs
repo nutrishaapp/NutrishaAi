@@ -105,30 +105,16 @@ namespace NutrishaAI.API.Services
 
         public async Task<string> GenerateNutritionistResponseAsync(string userMessage, string? conversationContext = null)
         {
-            // Get system prompt from config service with fallback to hardcoded default
-            var systemPromptTemplate = await _configService.GetConfigAsync("nutritionist_system_prompt", @"
-You are NutrishaAI, a professional AI nutritionist and health coach. You provide personalized nutrition advice, meal planning, and health guidance.
+            // Get both system prompt and JSON structure from config service
+            var systemPromptTemplate = await _configService.GetConfigAsync("risha_prompt");
+            var jsonStructure = await _configService.GetConfigAsync("response_json_structure");
 
-Your expertise includes:
-- Nutritional analysis and meal planning
-- Dietary restrictions and allergies management
-- Weight management strategies
-- Sports nutrition
-- Health condition-specific diets (diabetes, heart disease, etc.)
-- Food science and nutrient interactions
-- Behavioral nutrition coaching
-
-Guidelines:
-- Always provide evidence-based advice
-- Ask clarifying questions when needed
-- Be encouraging and supportive
-- Provide practical, actionable recommendations
-- Consider individual needs, preferences, and constraints
-- Mention when medical consultation is recommended
-- Keep responses conversational but professional
-- Include specific examples and portion sizes when relevant
-
-Current conversation context: {conversationContext}");
+            // Check if configs are available
+            if (string.IsNullOrEmpty(systemPromptTemplate) || string.IsNullOrEmpty(jsonStructure))
+            {
+                _logger.LogWarning("Missing configuration: risha_prompt or response_json_structure not found");
+                return "I apologize, but I'm experiencing configuration issues. Please try again later.";
+            }
 
             // Replace template variables
             var systemPrompt = systemPromptTemplate.Replace("{conversationContext}", 
@@ -138,7 +124,7 @@ Current conversation context: {conversationContext}");
 
 User Message: {userMessage}
 
-Please respond as NutrishaAI, providing helpful nutrition and health guidance:";
+{jsonStructure}";
 
             return await GenerateResponseAsync(fullPrompt);
         }
@@ -242,11 +228,13 @@ Analyze this image and provide:
         {
             try
             {
-                var prompt = @$"You are a professional nutritionist processing audio content.
+                var promptTemplate = await _configService.GetConfigAsync("voice_processing_prompt", @"You are a professional nutritionist processing audio content.
                 
-                {(textPrompt ?? "Please provide nutrition advice based on this audio.")}
+{textPrompt}
                 
-                Note: Audio transcription is not yet implemented. Please describe what nutrition advice you would provide.";
+Note: Audio transcription is not yet implemented. Please provide nutrition advice based on this audio.");
+
+                var prompt = promptTemplate.Replace("{textPrompt}", textPrompt ?? "Please provide nutrition advice based on this audio.");
 
                 var response = await GenerateResponseAsync(prompt);
 
@@ -273,21 +261,19 @@ Analyze this image and provide:
         {
             try
             {
-                var promptTemplate = await _configService.GetConfigAsync("health_data_extraction_prompt", @"Extract health and nutrition data from the following content.
+                var promptTemplate = await _configService.GetConfigAsync("health_data_extraction_prompt");
                 
-Content Type: {contentType}
-Content: {content}
-                
-Extract and return in JSON format:
-- foods: array of {{name, calories, servingSize}}
-- exercises: array of {{activity, durationMinutes, intensity}}
-- symptoms: array of strings
-- dietary_restrictions: array of strings
-- health_goals: array of strings
-- measurements: object with key-value pairs
-- summary: brief text summary
-                
-If no relevant data is found, return empty arrays/objects.");
+                if (string.IsNullOrEmpty(promptTemplate))
+                {
+                    _logger.LogWarning("Missing configuration: health_data_extraction_prompt not found");
+                    return new HealthDataExtractionResult
+                    {
+                        Summary = "Configuration error: Unable to extract health data",
+                        ExtractedAt = DateTime.UtcNow,
+                        OriginalContent = content,
+                        ContentType = contentType
+                    };
+                }
 
                 var prompt = promptTemplate
                     .Replace("{contentType}", contentType)

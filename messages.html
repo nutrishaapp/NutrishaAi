@@ -375,6 +375,39 @@
             opacity: 0.7;
         }
 
+        /* Simple toggle switch styles */
+        .mode-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 20px;
+            padding: 4px;
+        }
+
+        .toggle-option {
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: transparent;
+            border: none;
+        }
+
+        .toggle-option.active {
+            background: white;
+            color: var(--primary-color);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .toggle-option i {
+            margin-right: 4px;
+            font-size: 12px;
+        }
+
         .message-input-area {
             border-top: 1px solid rgba(0, 0, 0, 0.1);
             padding: 20px;
@@ -661,10 +694,16 @@
                         <i class="fas fa-sync-alt"></i>
                         Refresh
                     </button>
-                    <button class="action-btn primary" id="aiChatBtn">
-                        <i class="fas fa-robot"></i>
-                        AI Chat
-                    </button>
+                    <div class="mode-toggle">
+                        <button class="toggle-option" id="humanMode">
+                            <i class="fas fa-user"></i>
+                            Human
+                        </button>
+                        <button class="toggle-option active" id="aiMode">
+                            <i class="fas fa-robot"></i>
+                            AI
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -748,6 +787,7 @@
         let currentConversationId = null;
         let conversations = [];
         let currentUser = null;
+        let isAiMode = true; // Track conversation mode (true = AI, false = Human)
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
@@ -779,7 +819,22 @@
             document.getElementById('newConversationForm').addEventListener('submit', createConversation);
             document.getElementById('sendBtn').addEventListener('click', sendMessage);
             document.getElementById('refreshBtn').addEventListener('click', loadConversations);
-            document.getElementById('aiChatBtn').addEventListener('click', startAiChat);
+            
+            // Mode toggle functionality
+            const humanModeBtn = document.getElementById('humanMode');
+            const aiModeBtn = document.getElementById('aiMode');
+            
+            humanModeBtn.addEventListener('click', function() {
+                isAiMode = false;
+                humanModeBtn.classList.add('active');
+                aiModeBtn.classList.remove('active');
+            });
+            
+            aiModeBtn.addEventListener('click', function() {
+                isAiMode = true;
+                aiModeBtn.classList.add('active');
+                humanModeBtn.classList.remove('active');
+            });
             
             // Auto-resize message input
             const messageInput = document.getElementById('messageInput');
@@ -1022,52 +1077,74 @@
             messagesArea.innerHTML += userMessageHtml;
             messagesArea.scrollTop = messagesArea.scrollHeight;
             
-            // Add typing indicator
-            const typingIndicatorHtml = `
-                <div class="typing-indicator" id="typing-indicator">
-                    <div class="message-avatar">AI</div>
-                    <div class="typing-bubble">
-                        <div class="typing-dot"></div>
-                        <div class="typing-dot"></div>
-                        <div class="typing-dot"></div>
+            // Add typing indicator only in AI mode
+            if (isAiMode) {
+                const typingIndicatorHtml = `
+                    <div class="typing-indicator" id="typing-indicator">
+                        <div class="message-avatar">AI</div>
+                        <div class="typing-bubble">
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                        </div>
                     </div>
-                </div>
-            `;
-            
-            messagesArea.innerHTML += typingIndicatorHtml;
-            messagesArea.scrollTop = messagesArea.scrollHeight;
+                `;
+                
+                messagesArea.innerHTML += typingIndicatorHtml;
+                messagesArea.scrollTop = messagesArea.scrollHeight;
+            }
             
             const sendBtn = document.getElementById('sendBtn');
             sendBtn.disabled = true;
             
             try {
                 const token = localStorage.getItem('authToken');
-                const response = await fetch(`${API_URL}/api/chat/send`, {
+                
+                // Use different endpoint or parameter based on mode
+                const endpoint = isAiMode ? `${API_URL}/api/chat/send` : `${API_URL}/api/chat/send`;
+                const requestBody = {
+                    conversationId: currentConversationId,
+                    content: content,
+                    messageType: 'text'
+                };
+                
+                // Add a flag to indicate if AI response is needed
+                if (!isAiMode) {
+                    requestBody.skipAiResponse = true;
+                }
+                
+                const response = await fetch(endpoint, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        conversationId: currentConversationId,
-                        content: content,
-                        messageType: 'text'
-                    })
+                    body: JSON.stringify(requestBody)
                 });
 
                 if (response.ok) {
-                    // Wait a bit to show typing indicator
-                    setTimeout(() => {
-                        // Remove optimistic message and typing indicator
-                        const optimisticMsg = document.getElementById(optimisticMessageId);
-                        if (optimisticMsg) optimisticMsg.remove();
-                        
-                        const typingIndicator = document.getElementById('typing-indicator');
-                        if (typingIndicator) typingIndicator.remove();
-                        
-                        // Load all messages including the AI response
-                        loadConversationMessages(currentConversationId);
-                    }, 1500); // Show typing for at least 1.5 seconds
+                    if (isAiMode) {
+                        // Wait a bit to show typing indicator
+                        setTimeout(() => {
+                            // Remove optimistic message and typing indicator
+                            const optimisticMsg = document.getElementById(optimisticMessageId);
+                            if (optimisticMsg) optimisticMsg.remove();
+                            
+                            const typingIndicator = document.getElementById('typing-indicator');
+                            if (typingIndicator) typingIndicator.remove();
+                            
+                            // Load all messages including the AI response
+                            loadConversationMessages(currentConversationId);
+                        }, 1500); // Show typing for at least 1.5 seconds
+                    } else {
+                        // For human mode, update immediately
+                        setTimeout(() => {
+                            const optimisticMsg = document.getElementById(optimisticMessageId);
+                            if (optimisticMsg) optimisticMsg.remove();
+                            
+                            loadConversationMessages(currentConversationId);
+                        }, 200);
+                    }
                 } else {
                     // Remove optimistic message and typing indicator on error
                     const optimisticMsg = document.getElementById(optimisticMessageId);

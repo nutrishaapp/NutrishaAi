@@ -144,7 +144,7 @@ namespace NutrishaAI.API.Controllers
                 var messages = await _supabaseClient
                     .From<Message>()
                     .Filter("conversation_id", Supabase.Postgrest.Constants.Operator.Equals, conversationId.ToString())
-                    .Order("created_at", Supabase.Postgrest.Constants.Ordering.Descending)
+                    .Order("created_at", Supabase.Postgrest.Constants.Ordering.Ascending)
                     .Limit(limit)
                     .Offset(offset)
                     .Get();
@@ -255,7 +255,7 @@ namespace NutrishaAI.API.Controllers
                         {
                             Id = Guid.NewGuid(),
                             ConversationId = request.ConversationId,
-                            SenderId = Guid.Parse(userId), // Use the current user's ID for AI messages
+                            SenderId = null, // NULL for AI messages
                             Content = aiResponseText,
                             MessageType = "text",
                             IsAiGenerated = true,
@@ -414,7 +414,7 @@ namespace NutrishaAI.API.Controllers
                             {
                                 Id = Guid.NewGuid(),
                                 ConversationId = request.ConversationId,
-                                SenderId = Guid.Empty, // System/AI user
+                                SenderId = null, // NULL for AI messages
                                 Content = geminiResponse.Text,
                                 MessageType = "ai_response",
                                 IsAiGenerated = true,

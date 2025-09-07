@@ -14,7 +14,7 @@ namespace NutrishaAI.Core.Entities
         public Guid ConversationId { get; set; }
         
         [Column("sender_id")]
-        public Guid SenderId { get; set; }
+        public Guid? SenderId { get; set; }
         
         [Column("content")]
         public string? Content { get; set; }

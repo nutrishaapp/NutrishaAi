@@ -833,19 +833,25 @@
                 return;
             }
 
-            messagesArea.innerHTML = messages.map(message => `
-                <div class="message ${message.senderId === currentUser.id ? 'sent' : ''}">
-                    <div class="message-avatar">
-                        ${message.senderName?.charAt(0).toUpperCase() || 'U'}
-                    </div>
-                    <div class="message-content">
-                        <div class="message-text">${message.content}</div>
-                        <div class="message-time">
-                            ${new Date(message.createdAt).toLocaleTimeString()}
+            messagesArea.innerHTML = messages.map(message => {
+                // Check if message is from current user (senderId not null and matches user id)
+                const isUserMessage = message.senderId && 
+                                     message.senderId.toString().toLowerCase() === currentUser.id.toString().toLowerCase();
+
+                return `
+                    <div class="message ${isUserMessage ? 'sent' : ''}">
+                        <div class="message-avatar">
+                            ${message.senderId ? (message.sender?.name?.charAt(0).toUpperCase() || 'U') : 'AI'}
+                        </div>
+                        <div class="message-content">
+                            <div class="message-text">${message.content}</div>
+                            <div class="message-time">
+                                ${new Date(message.createdAt).toLocaleTimeString()}
+                            </div>
                         </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
 
             // Scroll to bottom
             messagesArea.scrollTop = messagesArea.scrollHeight;

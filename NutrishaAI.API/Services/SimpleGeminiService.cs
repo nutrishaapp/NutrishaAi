@@ -9,10 +9,16 @@ namespace NutrishaAI.API.Services
         public int ContentCategory { get; set; }
     }
 
+    public class AttachmentContent
+    {
+        public string Base64Data { get; set; } = string.Empty;
+        public string MimeType { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty; // "image", "audio", "document", etc.
+    }
+
     public interface ISimpleGeminiService
     {
-        Task<string> GenerateResponseAsync(string prompt);
-        Task<string> GenerateNutritionistResponseAsync(string userMessage, string? conversationContext = null);
+        Task<string> GenerateNutritionistResponseAsync(string userMessage, string? conversationContext = null, List<AttachmentContent>? attachments = null);
     }
 
     public class SimpleGeminiService : ISimpleGeminiService, IGeminiService
@@ -41,23 +47,80 @@ namespace NutrishaAI.API.Services
             _model = configuration["Gemini:Model"] ?? "gemini-1.5-flash";
         }
 
-        public async Task<string> GenerateResponseAsync(string prompt)
+        public async Task<string> GenerateNutritionistResponseAsync(string userMessage, string? conversationContext = null, List<AttachmentContent>? attachments = null)
+        {
+            try
+            {
+                // Get configuration
+                var systemPromptTemplate = await _configService.GetConfigAsync("risha_prompt");
+                var jsonStructure = await _configService.GetConfigAsync("response_json_structure");
+
+                if (string.IsNullOrEmpty(systemPromptTemplate) || string.IsNullOrEmpty(jsonStructure))
+                {
+                    _logger.LogWarning("Missing configuration: risha_prompt or response_json_structure not found");
+                    return "I apologize, but I'm experiencing configuration issues. Please try again later.";
+                }
+
+                // Build the full nutritionist prompt with context
+                var systemPrompt = systemPromptTemplate.Replace("{conversationContext}", 
+                    conversationContext ?? "This is the start of a new conversation.");
+
+                var fullPrompt = $@"{systemPrompt}
+
+User Message: {userMessage}
+
+{jsonStructure}";
+
+                // Generate response with or without attachments
+                var rawResponse = await GenerateGeminiResponseAsync(fullPrompt, attachments);
+                
+                // Parse and format the response
+                var parsedResponse = ParseGeminiJsonResponse(rawResponse);
+                return $"{parsedResponse.Reply} (Content:{parsedResponse.ContentCategory})";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating nutritionist response");
+                return "I apologize, but I'm experiencing technical difficulties. Please try again later.";
+            }
+        }
+
+        private async Task<string> GenerateGeminiResponseAsync(string prompt, List<AttachmentContent>? attachments = null)
         {
             try
             {
                 var requestUrl = $"{_baseUrl}/models/{_model}:generateContent?key={_apiKey}";
                 
+                // Build the request parts
+                var parts = new List<object> { new { text = prompt } };
+                
+                // Add attachments if present
+                if (attachments != null)
+                {
+                    foreach (var attachment in attachments)
+                    {
+                        if (attachment.Type == "image" && !string.IsNullOrEmpty(attachment.Base64Data))
+                        {
+                            parts.Add(new 
+                            { 
+                                inline_data = new 
+                                {
+                                    mime_type = attachment.MimeType,
+                                    data = attachment.Base64Data
+                                }
+                            });
+                        }
+                        // Future: Add support for audio, document, etc.
+                        // else if (attachment.Type == "audio") { ... }
+                        // else if (attachment.Type == "document") { ... }
+                    }
+                }
+
                 var requestBody = new
                 {
                     contents = new[]
                     {
-                        new
-                        {
-                            parts = new[]
-                            {
-                                new { text = prompt }
-                            }
-                        }
+                        new { parts = parts.ToArray() }
                     },
                     generationConfig = new
                     {
@@ -77,7 +140,9 @@ namespace NutrishaAI.API.Services
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
                     _logger.LogError("Gemini API error: {StatusCode} - {Content}", response.StatusCode, errorContent);
-                    return "I apologize, but I'm having trouble generating a response right now. Please try again.";
+                    return attachments?.Any() == true 
+                        ? "I apologize, but I'm having trouble analyzing the content right now. Please try again."
+                        : "I apologize, but I'm having trouble generating a response right now. Please try again.";
                 }
 
                 var responseContent = await response.Content.ReadAsStringAsync();
@@ -89,10 +154,10 @@ namespace NutrishaAI.API.Services
                 {
                     var firstCandidate = candidates[0];
                     if (firstCandidate.TryGetProperty("content", out var contentElement) &&
-                        contentElement.TryGetProperty("parts", out var parts) &&
-                        parts.GetArrayLength() > 0)
+                        contentElement.TryGetProperty("parts", out var responseParts) &&
+                        responseParts.GetArrayLength() > 0)
                     {
-                        var firstPart = parts[0];
+                        var firstPart = responseParts[0];
                         if (firstPart.TryGetProperty("text", out var textElement))
                         {
                             return textElement.GetString() ?? "I couldn't generate a response.";
@@ -107,88 +172,6 @@ namespace NutrishaAI.API.Services
                 _logger.LogError(ex, "Error generating response with Gemini API");
                 return "I apologize, but I'm experiencing technical difficulties. Please try again later.";
             }
-        }
-
-        private string CleanJsonResponse(string rawResponse)
-        {
-            // Remove common markdown code block markers
-            rawResponse = System.Text.RegularExpressions.Regex.Replace(
-                rawResponse, 
-                @"```json\s*|\s*```", 
-                "", 
-                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-            
-            // Remove common prefixes
-            var prefixes = new[] { "json:", "JSON:", "Here's my response:", "Response:", "Here is the JSON:" };
-            foreach (var prefix in prefixes)
-            {
-                var index = rawResponse.IndexOf(prefix, StringComparison.OrdinalIgnoreCase);
-                if (index >= 0 && index < 50) // Only remove if prefix is near the beginning
-                {
-                    rawResponse = rawResponse.Substring(index + prefix.Length);
-                    break;
-                }
-            }
-            
-            return rawResponse.Trim();
-        }
-
-        private string ExtractJsonFromResponse(string response)
-        {
-            // Try to find JSON object boundaries with smart brace matching
-            var startIndex = response.IndexOf('{');
-            
-            if (startIndex < 0)
-                return string.Empty;
-            
-            var braceCount = 0;
-            var inString = false;
-            var escapeNext = false;
-            var endIndex = -1;
-            
-            for (int i = startIndex; i < response.Length; i++)
-            {
-                var ch = response[i];
-                
-                if (escapeNext)
-                {
-                    escapeNext = false;
-                    continue;
-                }
-                
-                if (ch == '\\' && inString)
-                {
-                    escapeNext = true;
-                    continue;
-                }
-                
-                if (ch == '"' && !escapeNext)
-                {
-                    inString = !inString;
-                }
-                
-                if (!inString)
-                {
-                    if (ch == '{')
-                        braceCount++;
-                    else if (ch == '}')
-                    {
-                        braceCount--;
-                        if (braceCount == 0)
-                        {
-                            endIndex = i;
-                            break;
-                        }
-                    }
-                }
-            }
-            
-            if (endIndex > startIndex)
-            {
-                return response.Substring(startIndex, endIndex - startIndex + 1);
-            }
-            
-            return string.Empty;
         }
 
         private GeminiJsonResponse ParseGeminiJsonResponse(string rawResponse)
@@ -290,46 +273,92 @@ namespace NutrishaAI.API.Services
             }
         }
 
-        public async Task<string> GenerateNutritionistResponseAsync(string userMessage, string? conversationContext = null)
+        private string CleanJsonResponse(string rawResponse)
         {
-            // Get both system prompt and JSON structure from config service
-            var systemPromptTemplate = await _configService.GetConfigAsync("risha_prompt");
-            var jsonStructure = await _configService.GetConfigAsync("response_json_structure");
-
-            // Check if configs are available
-            if (string.IsNullOrEmpty(systemPromptTemplate) || string.IsNullOrEmpty(jsonStructure))
+            // Remove common markdown code block markers
+            rawResponse = System.Text.RegularExpressions.Regex.Replace(
+                rawResponse, 
+                @"```json\s*|\s*```", 
+                "", 
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            
+            // Remove common prefixes
+            var prefixes = new[] { "json:", "JSON:", "Here's my response:", "Response:", "Here is the JSON:" };
+            foreach (var prefix in prefixes)
             {
-                _logger.LogWarning("Missing configuration: risha_prompt or response_json_structure not found");
-                return "I apologize, but I'm experiencing configuration issues. Please try again later.";
+                var index = rawResponse.IndexOf(prefix, StringComparison.OrdinalIgnoreCase);
+                if (index >= 0 && index < 50) // Only remove if prefix is near the beginning
+                {
+                    rawResponse = rawResponse.Substring(index + prefix.Length);
+                    break;
+                }
             }
-
-            // Replace template variables
-            var systemPrompt = systemPromptTemplate.Replace("{conversationContext}", 
-                conversationContext ?? "This is the start of a new conversation.");
-
-            var fullPrompt = $@"{systemPrompt}
-
-User Message: {userMessage}
-
-{jsonStructure}";
-
-            // Get raw JSON response from Gemini
-            var rawResponse = await GenerateResponseAsync(fullPrompt);
             
-            // Parse JSON and extract reply + contentCategory
-            var parsedResponse = ParseGeminiJsonResponse(rawResponse);
-            
-            // Return formatted message: "reply text (Content:0)"
-            return $"{parsedResponse.Reply} (Content:{parsedResponse.ContentCategory})";
+            return rawResponse.Trim();
         }
 
+        private string ExtractJsonFromResponse(string response)
+        {
+            // Try to find JSON object boundaries with smart brace matching
+            var startIndex = response.IndexOf('{');
+            
+            if (startIndex < 0)
+                return string.Empty;
+            
+            var braceCount = 0;
+            var inString = false;
+            var escapeNext = false;
+            var endIndex = -1;
+            
+            for (int i = startIndex; i < response.Length; i++)
+            {
+                var ch = response[i];
+                
+                if (escapeNext)
+                {
+                    escapeNext = false;
+                    continue;
+                }
+                
+                if (ch == '\\' && inString)
+                {
+                    escapeNext = true;
+                    continue;
+                }
+                
+                if (ch == '"' && !escapeNext)
+                {
+                    inString = !inString;
+                }
+                
+                if (!inString)
+                {
+                    if (ch == '{')
+                        braceCount++;
+                    else if (ch == '}')
+                    {
+                        braceCount--;
+                        if (braceCount == 0)
+                        {
+                            endIndex = i;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            if (endIndex > startIndex)
+            {
+                return response.Substring(startIndex, endIndex - startIndex + 1);
+            }
+            
+            return string.Empty;
+        }
+
+        // Legacy methods to maintain compatibility with existing IGeminiService interface
         public async Task<string> ProcessTextAsync(string text, string? context = null)
         {
-            var prompt = context != null 
-                ? $"Context: {context}\n\nUser Message: {text}\n\nAs an AI nutritionist, provide helpful advice:"
-                : $"As an AI nutritionist, analyze and respond to: {text}";
-
-            return await GenerateResponseAsync(prompt);
+            return await GenerateNutritionistResponseAsync(text, context);
         }
 
         public async Task<GeminiResponse> ProcessMultimediaAsync(Stream fileStream, string contentType, string? textPrompt = null)
@@ -379,21 +408,19 @@ User Message: {userMessage}
                 var imageBytes = ms.ToArray();
                 var base64Image = Convert.ToBase64String(imageBytes);
 
-                var promptTemplate = await _configService.GetConfigAsync("image_analysis_prompt", @"You are a professional nutritionist analyzing food images.
-                
-Analyze this image and provide:
-1. Food identification and portion estimation
-2. Nutritional analysis (calories, macros, etc.)
-3. Health recommendations
-4. Any dietary concerns or benefits
-                
-{textPrompt}
-                
-[Image data provided as base64]");
+                // Use the unified nutritionist response method with image attachment
+                var attachments = new List<AttachmentContent>
+                {
+                    new AttachmentContent
+                    {
+                        Base64Data = base64Image,
+                        MimeType = "image/jpeg",
+                        Type = "image"
+                    }
+                };
 
-                var prompt = promptTemplate.Replace("{textPrompt}", textPrompt ?? "Please analyze this image.");
-
-                var response = await GenerateResponseAsync(prompt);
+                var userMessage = textPrompt ?? "Please analyze this image and provide nutritional information.";
+                var response = await GenerateNutritionistResponseAsync(userMessage, null, attachments);
 
                 return new GeminiResponse
                 {
@@ -422,15 +449,10 @@ Analyze this image and provide:
         {
             try
             {
-                var promptTemplate = await _configService.GetConfigAsync("voice_processing_prompt", @"You are a professional nutritionist processing audio content.
-                
-{textPrompt}
-                
-Note: Audio transcription is not yet implemented. Please provide nutrition advice based on this audio.");
-
-                var prompt = promptTemplate.Replace("{textPrompt}", textPrompt ?? "Please provide nutrition advice based on this audio.");
-
-                var response = await GenerateResponseAsync(prompt);
+                // Note: Audio transcription not yet implemented
+                // Use the unified nutritionist response method
+                var userMessage = textPrompt ?? "Please provide nutrition advice. Note: Audio processing is not yet implemented.";
+                var response = await GenerateNutritionistResponseAsync(userMessage);
 
                 return new GeminiResponse
                 {
@@ -469,11 +491,12 @@ Note: Audio transcription is not yet implemented. Please provide nutrition advic
                     };
                 }
 
-                var prompt = promptTemplate
+                var userMessage = promptTemplate
                     .Replace("{contentType}", contentType)
                     .Replace("{content}", content);
 
-                var textResponse = await GenerateResponseAsync(prompt);
+                // Use the unified nutritionist response method
+                var textResponse = await GenerateNutritionistResponseAsync(userMessage);
                 
                 HealthDataExtractionResult result;
                 try

@@ -21,6 +21,7 @@ namespace NutrishaAI.API.Controllers
         private readonly ISimpleGeminiService _simpleGeminiService;
         // private readonly IQdrantService _qdrantService;
         private readonly ILogger<ChatController> _logger;
+        private readonly IConfiguration _configuration;
 
         public ChatController(
             Client supabaseClient,
@@ -29,7 +30,8 @@ namespace NutrishaAI.API.Controllers
             IGeminiService geminiService,
             ISimpleGeminiService simpleGeminiService,
             // IQdrantService qdrantService,
-            ILogger<ChatController> logger)
+            ILogger<ChatController> logger,
+            IConfiguration configuration)
         {
             _supabaseClient = supabaseClient;
             _realtimeService = realtimeService;
@@ -38,6 +40,7 @@ namespace NutrishaAI.API.Controllers
             _simpleGeminiService = simpleGeminiService;
             // _qdrantService = qdrantService;
             _logger = logger;
+            _configuration = configuration;
         }
 
         [HttpPost("conversations")]
@@ -291,51 +294,74 @@ namespace NutrishaAI.API.Controllers
                     var conversationContext = string.Join("\n", 
                         recentMessages.Models.Select(m => $"{(m.IsAiGenerated ? "AI" : "User")}: {m.Content}"));
                     
-                    // Build prompt with attachment context
+                    // Build prompt with attachment context and prepare attachments
                     string combinedPrompt = request.Content ?? "";
                     string attachmentPrompt = "";
+                    var attachments = new List<AttachmentContent>();
                     
                     if (request.Attachments != null && request.Attachments.Any())
                     {
-                        // Group attachments by type
-                        var imageCount = request.Attachments.Count(a => a.Type == "image");
+                        var imageAttachments = request.Attachments.Where(a => a.Type == "image").ToList();
+                        
+                        if (imageAttachments.Any())
+                        {
+                            var containerName = _configuration["AzureStorage:ContainerNames:UserUploads"] ?? "user-uploads";
+                            
+                            foreach (var imageAttachment in imageAttachments)
+                            {
+                                try
+                                {
+                                    // Download image from Azure Blob Storage and convert to base64
+                                    var imageStream = await _blobService.DownloadFileAsync(imageAttachment.Url, containerName);
+                                    using var ms = new MemoryStream();
+                                    await imageStream.CopyToAsync(ms);
+                                    var imageBytes = ms.ToArray();
+                                    var base64Image = Convert.ToBase64String(imageBytes);
+                                    
+                                    attachments.Add(new AttachmentContent
+                                    {
+                                        Base64Data = base64Image,
+                                        MimeType = "image/jpeg", // Could be enhanced to detect actual type
+                                        Type = "image"
+                                    });
+                                }
+                                catch (Exception ex)
+                                {
+                                    _logger.LogError(ex, "Error processing image attachment {Url}", imageAttachment.Url);
+                                }
+                            }
+                            
+                            // Add image context to prompt
+                            var imageCount = imageAttachments.Count;
+                            attachmentPrompt += $"Please analyze the {imageCount} image{(imageCount > 1 ? "s" : "")} the user has shared. ";
+                        }
+                        
+                        // Handle other attachment types with prompts (for future expansion)
                         var documentCount = request.Attachments.Count(a => a.Type == "document");
                         var voiceCount = request.Attachments.Count(a => a.Type == "voice");
                         
-                        var attachmentDescriptions = new List<string>();
-                        
-                        if (imageCount > 0)
-                        {
-                            attachmentDescriptions.Add($"{imageCount} photo{(imageCount > 1 ? "s" : "")}");
-                            attachmentPrompt += $"Please check the {imageCount} photo{(imageCount > 1 ? "s" : "")} the user has shared. ";
-                        }
-                        
                         if (documentCount > 0)
                         {
-                            attachmentDescriptions.Add($"{documentCount} document{(documentCount > 1 ? "s" : "")}");
                             attachmentPrompt += $"Please read the {documentCount} document{(documentCount > 1 ? "s" : "")} the user has provided. ";
                         }
                         
                         if (voiceCount > 0)
                         {
-                            attachmentDescriptions.Add($"{voiceCount} voice note{(voiceCount > 1 ? "s" : "")}");
                             attachmentPrompt += $"Please listen to the {voiceCount} voice note{(voiceCount > 1 ? "s" : "")} from the user. ";
                         }
                         
-                        if (attachmentDescriptions.Any())
+                        // Build combined prompt with attachment context
+                        if (!string.IsNullOrEmpty(attachmentPrompt))
                         {
-                            attachmentPrompt += "Based on the attachments, provide nutritional guidance and health insights. ";
-                            
-                            // Note: In a real implementation, you would process the actual files here
-                            // For now, we're just acknowledging their presence
-                            combinedPrompt = $"{attachmentPrompt}\n\nUser message: {request.Content ?? "No text message"}\n\n[User has shared: {string.Join(", ", attachmentDescriptions)}]";
+                            combinedPrompt = $"{attachmentPrompt}\n\nUser message: {request.Content ?? "No text message"}";
                         }
                     }
                     
-                    // Generate AI nutritionist response
+                    // Generate AI nutritionist response using unified method
                     var aiResponseText = await _simpleGeminiService.GenerateNutritionistResponseAsync(
                         combinedPrompt, 
-                        conversationContext);
+                        conversationContext,
+                        attachments.Any() ? attachments : null);
                     
                     // Create AI response message
                     if (!string.IsNullOrEmpty(aiResponseText))

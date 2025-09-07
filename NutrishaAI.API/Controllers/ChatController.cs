@@ -205,15 +205,19 @@ namespace NutrishaAI.API.Controllers
                     .From<Message>()
                     .Insert(message);
 
-                // Update conversation's updated_at  
-                var conversationToUpdate = new Conversation 
-                { 
-                    Id = request.ConversationId,
-                    UpdatedAt = DateTime.UtcNow 
-                };
-                await _supabaseClient
-                    .From<Conversation>()
-                    .Upsert(conversationToUpdate);
+                // Update conversation's updated_at using direct SQL update to bypass RLS
+                try
+                {
+                    var updateResult = await _supabaseClient
+                        .From<Conversation>()
+                        .Filter("id", Supabase.Postgrest.Constants.Operator.Equals, request.ConversationId.ToString())
+                        .Set(c => c.UpdatedAt!, DateTime.UtcNow)
+                        .Update();
+                }
+                catch (Exception updateEx)
+                {
+                    _logger.LogWarning(updateEx, "Failed to update conversation timestamp for {ConversationId}, but message was saved", request.ConversationId);
+                }
 
                 // Send message via Realtime
                 try

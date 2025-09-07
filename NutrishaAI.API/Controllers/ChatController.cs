@@ -255,7 +255,7 @@ namespace NutrishaAI.API.Controllers
                         {
                             Id = Guid.NewGuid(),
                             ConversationId = request.ConversationId,
-                            SenderId = Guid.Empty, // System/AI user
+                            SenderId = Guid.Parse(userId), // Use the current user's ID for AI messages
                             Content = aiResponseText,
                             MessageType = "text",
                             IsAiGenerated = true,

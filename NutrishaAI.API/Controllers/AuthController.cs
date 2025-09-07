@@ -16,15 +16,18 @@ namespace NutrishaAI.API.Controllers
     {
         private readonly Supabase.Client _supabaseClient;
         private readonly IApiKeyService _apiKeyService;
+        private readonly IJwtService _jwtService;
         private readonly ILogger<AuthController> _logger;
 
         public AuthController(
             Supabase.Client supabaseClient,
             IApiKeyService apiKeyService,
+            IJwtService jwtService,
             ILogger<AuthController> logger)
         {
             _supabaseClient = supabaseClient;
             _apiKeyService = apiKeyService;
+            _jwtService = jwtService;
             _logger = logger;
         }
 
@@ -69,11 +72,18 @@ namespace NutrishaAI.API.Controllers
 
                 await _supabaseClient.From<Core.Entities.User>().Insert(userProfile);
 
+                // Generate our own JWT token
+                var token = _jwtService.GenerateToken(
+                    session.User.Id,
+                    session.User.Email ?? request.Email,
+                    userProfile.Role
+                );
+
                 var response = new AuthResponse
                 {
-                    AccessToken = session.AccessToken,
+                    AccessToken = token,
                     RefreshToken = session.RefreshToken,
-                    ExpiresIn = session.ExpiresIn == 0 ? 3600 : (int)session.ExpiresIn,
+                    ExpiresIn = 3600,
                     User = new UserResponse
                     {
                         Id = Guid.Parse(session.User.Id),
@@ -144,11 +154,19 @@ namespace NutrishaAI.API.Controllers
                     await _supabaseClient.From<Core.Entities.User>().Insert(userProfile);
                 }
                 
+                // Generate our own JWT token
+                var token = _jwtService.GenerateToken(
+                    session.User.Id,
+                    session.User.Email ?? request.Email,
+                    userProfile?.Role ?? (userMetadata?.ContainsKey("role") == true ? 
+                        userMetadata["role"]?.ToString() ?? "patient" : "patient")
+                );
+
                 var response = new AuthResponse
                 {
-                    AccessToken = session.AccessToken,
+                    AccessToken = token,
                     RefreshToken = session.RefreshToken,
-                    ExpiresIn = session.ExpiresIn == 0 ? 3600 : (int)session.ExpiresIn,
+                    ExpiresIn = 3600,
                     User = new UserResponse
                     {
                         Id = Guid.Parse(session.User.Id),
@@ -186,11 +204,19 @@ namespace NutrishaAI.API.Controllers
                 // Get user metadata from auth.users
                 var userMetadata = session.User.UserMetadata;
 
+                // Generate our own JWT token
+                var token = _jwtService.GenerateToken(
+                    session.User.Id,
+                    session.User.Email ?? "",
+                    userMetadata?.ContainsKey("role") == true ? 
+                        userMetadata["role"]?.ToString() ?? "patient" : "patient"
+                );
+
                 var response = new AuthResponse
                 {
-                    AccessToken = session.AccessToken,
+                    AccessToken = token,
                     RefreshToken = session.RefreshToken,
-                    ExpiresIn = session.ExpiresIn == 0 ? 3600 : (int)session.ExpiresIn,
+                    ExpiresIn = 3600,
                     User = new UserResponse
                     {
                         Id = Guid.Parse(session.User.Id),

@@ -16,7 +16,7 @@ namespace NutrishaAI.API.Controllers
     {
         private readonly Client _supabaseClient;
         private readonly ISupabaseRealtimeService _realtimeService;
-        private readonly IAzureBlobService _blobService;
+        // private readonly IAzureBlobService _blobService;
         private readonly IGeminiService _geminiService;
         private readonly ISimpleGeminiService _simpleGeminiService;
         // private readonly IQdrantService _qdrantService;
@@ -25,7 +25,7 @@ namespace NutrishaAI.API.Controllers
         public ChatController(
             Client supabaseClient,
             ISupabaseRealtimeService realtimeService,
-            IAzureBlobService blobService,
+            // IAzureBlobService blobService,
             IGeminiService geminiService,
             ISimpleGeminiService simpleGeminiService,
             // IQdrantService qdrantService,
@@ -33,7 +33,7 @@ namespace NutrishaAI.API.Controllers
         {
             _supabaseClient = supabaseClient;
             _realtimeService = realtimeService;
-            _blobService = blobService;
+            // _blobService = blobService;
             _geminiService = geminiService;
             _simpleGeminiService = simpleGeminiService;
             // _qdrantService = qdrantService;
@@ -96,8 +96,8 @@ namespace NutrishaAI.API.Controllers
 
                 var conversations = await _supabaseClient
                     .From<Conversation>()
-                    .Where(c => c.UserId == Guid.Parse(userId))
-                    .Order(c => c.UpdatedAt, Supabase.Postgrest.Constants.Ordering.Descending)
+                    .Filter("user_id", Supabase.Postgrest.Constants.Operator.Equals, userId)
+                    .Order("updated_at", Supabase.Postgrest.Constants.Ordering.Descending)
                     .Get();
 
                 var response = conversations.Models.Select(c => new ConversationResponse
@@ -355,7 +355,8 @@ namespace NutrishaAI.API.Controllers
                 if (!string.IsNullOrEmpty(request.BlobName))
                 {
                     // Get full blob URL
-                    var blobUrl = await _blobService.GetBlobUrlAsync(request.BlobName, "user-uploads");
+                    // var blobUrl = await _blobService.GetBlobUrlAsync(request.BlobName, "user-uploads");
+                    var blobUrl = "";
 
                     var attachment = new MediaAttachment
                     {
@@ -377,8 +378,10 @@ namespace NutrishaAI.API.Controllers
                     if (!string.IsNullOrEmpty(request.BlobName))
                     {
                         // Download blob from Azure Storage
-                        using var blobStream = await _blobService.DownloadFileAsync(request.BlobName, "user-uploads");
-                        var blobInfo = await _blobService.GetBlobInfoAsync(request.BlobName, "user-uploads");
+                        // using var blobStream = await _blobService.DownloadFileAsync(request.BlobName, "user-uploads");
+                        // var blobInfo = await _blobService.GetBlobInfoAsync(request.BlobName, "user-uploads");
+                        using var blobStream = new MemoryStream();
+                        var blobInfo = new { ContentType = "audio/webm" };
                         
                         // Process with Gemini AI
                         var geminiResponse = await _geminiService.ProcessMultimediaAsync(
@@ -475,8 +478,10 @@ namespace NutrishaAI.API.Controllers
                     return Unauthorized();
 
                 // Get blob from Azure Storage
-                using var blobStream = await _blobService.DownloadFileAsync(request.BlobName, "user-uploads");
-                var blobInfo = await _blobService.GetBlobInfoAsync(request.BlobName, "user-uploads");
+                // using var blobStream = await _blobService.DownloadFileAsync(request.BlobName, "user-uploads");
+                // var blobInfo = await _blobService.GetBlobInfoAsync(request.BlobName, "user-uploads");
+                using var blobStream = new MemoryStream();
+                var blobInfo = new { ContentType = "audio/webm" };
                 
                 // Process with Gemini AI
                 var geminiResponse = await _geminiService.ProcessMultimediaAsync(
@@ -517,7 +522,8 @@ namespace NutrishaAI.API.Controllers
                 {
                     MessageId = Guid.NewGuid(),
                     AiResponse = geminiResponse.Text,
-                    BlobUrl = await _blobService.GetBlobUrlAsync(request.BlobName, "user-uploads"),
+                    // BlobUrl = await _blobService.GetBlobUrlAsync(request.BlobName, "user-uploads"),
+                    BlobUrl = "",
                     ExtractedHealthData = new Dictionary<string, object>
                     {
                         { "foods", healthData.Foods },

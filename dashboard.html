@@ -608,6 +608,133 @@
             }
         }
 
+        /* Conversations Styles */
+        .conversations-container {
+            padding: 20px;
+        }
+
+        .conversations-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .conversations-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .new-conversation-btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .new-conversation-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--box-shadow);
+        }
+
+        .conversations-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .conversation-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .conversation-card:hover {
+            transform: translateX(5px);
+            box-shadow: var(--box-shadow);
+        }
+
+        .conversation-info {
+            flex: 1;
+        }
+
+        .conversation-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-bottom: 8px;
+        }
+
+        .conversation-preview {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .conversation-meta {
+            display: flex;
+            gap: 20px;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .conversation-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .conversation-status.active {
+            background: rgba(39, 174, 96, 0.1);
+            color: var(--success-color);
+        }
+
+        .conversation-status.archived {
+            background: rgba(153, 153, 153, 0.1);
+            color: #999;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+
+        .empty-state-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-bottom: 10px;
+        }
+
+        .empty-state-text {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
         /* Logout Button */
         .logout-btn {
             background: linear-gradient(135deg, var(--danger-color), #ec7063);
@@ -641,43 +768,43 @@
             
             <nav class="nav-menu">
                 <div class="nav-item">
-                    <a href="#" class="nav-link active">
+                    <a href="#" class="nav-link active" data-tab="conversations">
+                        <i class="nav-icon fas fa-comments"></i>
+                        <span class="nav-text">Conversations</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" data-tab="dashboard">
                         <i class="nav-icon fas fa-chart-pie"></i>
                         <span class="nav-text">Dashboard</span>
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="#" class="nav-link" data-tab="users">
                         <i class="nav-icon fas fa-users"></i>
                         <span class="nav-text">Users</span>
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="#" class="nav-link" data-tab="diet-plans">
                         <i class="nav-icon fas fa-utensils"></i>
                         <span class="nav-text">Diet Plans</span>
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="messages.html" class="nav-link">
-                        <i class="nav-icon fas fa-comments"></i>
-                        <span class="nav-text">Messages</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="#" class="nav-link" data-tab="analytics">
                         <i class="nav-icon fas fa-chart-bar"></i>
                         <span class="nav-text">Analytics</span>
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="#" class="nav-link" data-tab="api-keys">
                         <i class="nav-icon fas fa-key"></i>
                         <span class="nav-text">API Keys</span>
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="#" class="nav-link" data-tab="settings">
                         <i class="nav-icon fas fa-cog"></i>
                         <span class="nav-text">Settings</span>
                     </a>
@@ -693,7 +820,7 @@
                     <button class="sidebar-toggle" id="sidebarToggle">
                         <i class="fas fa-bars"></i>
                     </button>
-                    <h1 class="page-title">Dashboard</h1>
+                    <h1 class="page-title" id="pageTitle">Conversations</h1>
                 </div>
                 
                 <div class="header-right">
@@ -718,7 +845,7 @@
             </header>
 
             <!-- Content -->
-            <main class="content">
+            <main class="content" id="mainContent">
                 <!-- Stats Cards -->
                 <div class="stats-grid">
                     <div class="stat-card">
@@ -948,12 +1075,11 @@
                     // Add active class to clicked link
                     this.classList.add('active');
                     
-                    // Update page title based on clicked nav item
-                    const navText = this.querySelector('.nav-text').textContent;
-                    document.querySelector('.page-title').textContent = navText;
-                    
-                    // Add navigation logic here
-                    console.log('Navigate to:', navText);
+                    // Load content based on tab
+                    const tab = this.getAttribute('data-tab');
+                    if (tab) {
+                        loadTabContent(tab);
+                    }
                 });
             });
 
@@ -968,8 +1094,12 @@
                 });
             });
 
-            // Load real-time data (placeholder)
-            loadDashboardData();
+            // Store original dashboard content before switching tabs
+            originalDashboardContent = document.getElementById('mainContent').innerHTML;
+            tabContents.dashboard = originalDashboardContent;
+            
+            // Load initial content (Conversations)
+            loadTabContent('conversations');
         }
 
         async function loadDashboardData() {
@@ -986,6 +1116,165 @@
             } catch (error) {
                 console.error('Error loading dashboard data:', error);
             }
+        }
+
+        // Store original dashboard content
+        let originalDashboardContent = '';
+        
+        // Tab content templates
+        const tabContents = {
+            conversations: `
+                <div class="conversations-container">
+                    <div class="conversations-header">
+                        <h2 class="conversations-title">Your Conversations</h2>
+                        <button class="new-conversation-btn" onclick="createNewConversation()">
+                            <i class="fas fa-plus"></i>
+                            New Conversation
+                        </button>
+                    </div>
+                    <div class="conversations-list" id="conversationsList">
+                        <!-- Conversations will be loaded here -->
+                    </div>
+                </div>
+            `
+        };
+
+        function loadTabContent(tab) {
+            const mainContent = document.getElementById('mainContent');
+            const pageTitle = document.getElementById('pageTitle');
+            
+            // Update page title
+            const titles = {
+                conversations: 'Conversations',
+                dashboard: 'Dashboard',
+                users: 'Users',
+                'diet-plans': 'Diet Plans',
+                analytics: 'Analytics',
+                'api-keys': 'API Keys',
+                settings: 'Settings'
+            };
+            
+            pageTitle.textContent = titles[tab] || 'Dashboard';
+            
+            // Load content
+            if (tabContents[tab]) {
+                mainContent.innerHTML = tabContents[tab];
+                
+                // Load conversations if on conversations tab
+                if (tab === 'conversations') {
+                    loadConversations();
+                }
+            } else {
+                mainContent.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-hard-hat"></i>
+                        </div>
+                        <div class="empty-state-title">Coming Soon</div>
+                        <div class="empty-state-text">This section is under development.</div>
+                    </div>
+                `;
+            }
+        }
+
+        async function loadConversations() {
+            const token = localStorage.getItem('authToken');
+            const conversationsList = document.getElementById('conversationsList');
+            
+            try {
+                const response = await fetch(`${API_URL}/api/chat/conversations`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const conversations = await response.json();
+                    
+                    if (conversations.length === 0) {
+                        conversationsList.innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-state-icon">
+                                    <i class="fas fa-comments"></i>
+                                </div>
+                                <div class="empty-state-title">No conversations yet</div>
+                                <div class="empty-state-text">Start a new conversation to get nutritional advice!</div>
+                            </div>
+                        `;
+                    } else {
+                        conversationsList.innerHTML = conversations.map(conv => `
+                            <div class="conversation-card" onclick="openConversation('${conv.id}')">
+                                <div class="conversation-info">
+                                    <div class="conversation-title">${conv.title || 'Untitled Conversation'}</div>
+                                    <div class="conversation-preview">Click to view messages...</div>
+                                    <div class="conversation-meta">
+                                        <span><i class="fas fa-clock"></i> ${new Date(conv.updatedAt).toLocaleDateString()}</span>
+                                        <span><i class="fas fa-comment"></i> ${conv.messageCount || 0} messages</span>
+                                    </div>
+                                </div>
+                                <div class="conversation-status ${conv.status}">
+                                    ${conv.status}
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                } else {
+                    conversationsList.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="empty-state-title">Error loading conversations</div>
+                            <div class="empty-state-text">Please try again later.</div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading conversations:', error);
+                conversationsList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="empty-state-title">Error loading conversations</div>
+                        <div class="empty-state-text">${error.message}</div>
+                    </div>
+                `;
+            }
+        }
+
+        async function createNewConversation() {
+            const title = prompt('Enter a title for your new conversation:');
+            if (!title) return;
+            
+            const token = localStorage.getItem('authToken');
+            
+            try {
+                const response = await fetch(`${API_URL}/api/chat/conversations`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ title })
+                });
+                
+                if (response.ok) {
+                    const conversation = await response.json();
+                    // Redirect to messages page with conversation ID
+                    window.location.href = `messages.html?conversationId=${conversation.id}`;
+                } else {
+                    alert('Failed to create conversation. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error creating conversation:', error);
+                alert('Error creating conversation: ' + error.message);
+            }
+        }
+
+        function openConversation(conversationId) {
+            // Redirect to messages page with conversation ID
+            window.location.href = `messages.html?conversationId=${conversationId}`;
         }
 
         async function logout() {

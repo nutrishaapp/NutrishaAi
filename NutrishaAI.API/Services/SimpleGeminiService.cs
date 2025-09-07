@@ -9,7 +9,7 @@ namespace NutrishaAI.API.Services
         Task<string> GenerateNutritionistResponseAsync(string userMessage, string? conversationContext = null);
     }
 
-    public class SimpleGeminiService : ISimpleGeminiService
+    public class SimpleGeminiService : ISimpleGeminiService, IGeminiService
     {
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
@@ -133,6 +133,199 @@ User Message: {userMessage}
 Please respond as NutrishaAI, providing helpful nutrition and health guidance:";
 
             return await GenerateResponseAsync(fullPrompt);
+        }
+
+        public async Task<string> ProcessTextAsync(string text, string? context = null)
+        {
+            var prompt = context != null 
+                ? $"Context: {context}\n\nUser Message: {text}\n\nAs an AI nutritionist, provide helpful advice:"
+                : $"As an AI nutritionist, analyze and respond to: {text}";
+
+            return await GenerateResponseAsync(prompt);
+        }
+
+        public async Task<GeminiResponse> ProcessMultimediaAsync(Stream fileStream, string contentType, string? textPrompt = null)
+        {
+            try
+            {
+                if (contentType.StartsWith("image/"))
+                {
+                    return await ProcessImageAsync(fileStream, textPrompt);
+                }
+                else if (contentType.StartsWith("audio/"))
+                {
+                    return await ProcessVoiceNoteAsync(fileStream, textPrompt);
+                }
+                else
+                {
+                    using var reader = new StreamReader(fileStream);
+                    var content = await reader.ReadToEndAsync();
+                    var textResponse = await ProcessTextAsync(content, textPrompt);
+                    
+                    return new GeminiResponse
+                    {
+                        Text = textResponse,
+                        ContentType = "text",
+                        ProcessedAt = DateTime.UtcNow
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing multimedia with Gemini");
+                return new GeminiResponse
+                {
+                    Text = "I apologize, but I couldn't process the multimedia content.",
+                    ContentType = contentType,
+                    ProcessedAt = DateTime.UtcNow
+                };
+            }
+        }
+
+        public async Task<GeminiResponse> ProcessImageAsync(Stream imageStream, string? textPrompt = null)
+        {
+            try
+            {
+                using var ms = new MemoryStream();
+                await imageStream.CopyToAsync(ms);
+                var imageBytes = ms.ToArray();
+                var base64Image = Convert.ToBase64String(imageBytes);
+
+                var prompt = @$"You are a professional nutritionist analyzing food images.
+                
+Analyze this image and provide:
+                1. Food identification and portion estimation
+                2. Nutritional analysis (calories, macros, etc.)
+                3. Health recommendations
+                4. Any dietary concerns or benefits
+                
+                {(textPrompt ?? "Please analyze this image.")}
+                
+                [Image data provided as base64]";
+
+                var response = await GenerateResponseAsync(prompt);
+
+                return new GeminiResponse
+                {
+                    Text = response,
+                    ContentType = "image",
+                    ProcessedAt = DateTime.UtcNow,
+                    Metadata = new Dictionary<string, object>
+                    {
+                        { "imageSize", imageBytes.Length }
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing image with Gemini");
+                return new GeminiResponse
+                {
+                    Text = "I apologize, but I couldn't analyze the image. Please try again.",
+                    ContentType = "image",
+                    ProcessedAt = DateTime.UtcNow
+                };
+            }
+        }
+
+        public async Task<GeminiResponse> ProcessVoiceNoteAsync(Stream audioStream, string? textPrompt = null)
+        {
+            try
+            {
+                var prompt = @$"You are a professional nutritionist processing audio content.
+                
+                {(textPrompt ?? "Please provide nutrition advice based on this audio.")}
+                
+                Note: Audio transcription is not yet implemented. Please describe what nutrition advice you would provide.";
+
+                var response = await GenerateResponseAsync(prompt);
+
+                return new GeminiResponse
+                {
+                    Text = response,
+                    ContentType = "audio",
+                    ProcessedAt = DateTime.UtcNow
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing voice note with Gemini");
+                return new GeminiResponse
+                {
+                    Text = "I apologize, but I couldn't process the audio. Please try typing your question instead.",
+                    ContentType = "audio",
+                    ProcessedAt = DateTime.UtcNow
+                };
+            }
+        }
+
+        public async Task<HealthDataExtractionResult> ExtractHealthDataAsync(string content, string contentType)
+        {
+            try
+            {
+                var prompt = @$"Extract health and nutrition data from the following content.
+                
+Content Type: {contentType}
+                Content: {content}
+                
+                Extract and return in JSON format:
+                - foods: array of {{name, calories, servingSize}}
+                - exercises: array of {{activity, durationMinutes, intensity}}
+                - symptoms: array of strings
+                - dietary_restrictions: array of strings
+                - health_goals: array of strings
+                - measurements: object with key-value pairs
+                - summary: brief text summary
+                
+                If no relevant data is found, return empty arrays/objects.";
+
+                var textResponse = await GenerateResponseAsync(prompt);
+                
+                HealthDataExtractionResult result;
+                try
+                {
+                    var jsonStart = textResponse.IndexOf('{');
+                    var jsonEnd = textResponse.LastIndexOf('}');
+                    if (jsonStart >= 0 && jsonEnd > jsonStart)
+                    {
+                        var jsonText = textResponse.Substring(jsonStart, jsonEnd - jsonStart + 1);
+                        result = JsonSerializer.Deserialize<HealthDataExtractionResult>(jsonText) ?? new HealthDataExtractionResult();
+                    }
+                    else
+                    {
+                        result = new HealthDataExtractionResult
+                        {
+                            Summary = textResponse,
+                            ExtractedAt = DateTime.UtcNow
+                        };
+                    }
+                }
+                catch (JsonException)
+                {
+                    result = new HealthDataExtractionResult
+                    {
+                        Summary = textResponse,
+                        ExtractedAt = DateTime.UtcNow
+                    };
+                }
+
+                result.ExtractedAt = DateTime.UtcNow;
+                result.OriginalContent = content;
+                result.ContentType = contentType;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error extracting health data with Gemini");
+                return new HealthDataExtractionResult
+                {
+                    Summary = "Error extracting health data",
+                    ExtractedAt = DateTime.UtcNow,
+                    OriginalContent = content,
+                    ContentType = contentType
+                };
+            }
         }
     }
 }

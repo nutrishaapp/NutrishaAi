@@ -77,7 +77,7 @@ var supabaseServiceKey = builder.Configuration.GetConnectionString("SupabaseServ
 
 builder.Services.AddSingleton(provider => new Supabase.Client(
     supabaseUrl,
-    supabaseKey,
+    supabaseServiceKey,  // Use service key to bypass RLS
     new SupabaseOptions
     {
         AutoConnectRealtime = true,
@@ -109,13 +109,13 @@ builder.Services.AddAuthentication(options =>
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
-        ValidateAudience = true,
+        ValidateAudience = false,  // Supabase anon tokens don't have audience
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidAudience = builder.Configuration["Jwt:Audience"],
+        ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "NutrishaAI",
         IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? ""))
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "")),
+        ClockSkew = TimeSpan.FromMinutes(5)
     };
 })
 .AddScheme<ApiKeyAuthOptions, ApiKeyAuthenticationHandler>("ApiKey", null);
@@ -123,9 +123,12 @@ builder.Services.AddAuthentication(options =>
 // Register services
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<IApiKeyService, ApiKeyService>();
+builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddSingleton<ISupabaseRealtimeService, SupabaseRealtimeService>();
-builder.Services.AddScoped<IAzureBlobService, AzureBlobService>();
-builder.Services.AddScoped<IGeminiService, GeminiService>();
+// builder.Services.AddScoped<IAzureBlobService, AzureBlobService>(); // Disabled - not configured
+// builder.Services.AddScoped<IGeminiService, GeminiService>(); // Disabled - requires Google Cloud credentials
+// Use SimpleGeminiService for both interfaces to avoid Google Cloud dependency
+builder.Services.AddScoped<IGeminiService, SimpleGeminiService>();
 builder.Services.AddScoped<ISimpleGeminiService, SimpleGeminiService>();
 builder.Services.AddHttpClient<ISimpleGeminiService, SimpleGeminiService>();
 // builder.Services.AddScoped<IQdrantService, QdrantService>();

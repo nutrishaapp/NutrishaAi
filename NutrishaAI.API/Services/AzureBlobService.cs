@@ -74,10 +74,10 @@ namespace NutrishaAI.API.Services
                     uploadOptions.HttpHeaders = new BlobHttpHeaders { ContentType = contentType };
                 }
 
-                // Add metadata
+                // Add metadata - sanitize the filename for metadata as well
                 uploadOptions.Metadata = new Dictionary<string, string>
                 {
-                    { "OriginalFileName", fileName },
+                    { "OriginalFileName", SanitizeFileName(fileName) },
                     { "UploadedAt", DateTime.UtcNow.ToString("O") },
                     { "FileType", fileType }
                 };
@@ -220,10 +220,46 @@ namespace NutrishaAI.API.Services
         {
             var extension = Path.GetExtension(originalFileName);
             var nameWithoutExtension = Path.GetFileNameWithoutExtension(originalFileName);
+            
+            // Sanitize the filename - remove or replace non-ASCII characters
+            nameWithoutExtension = SanitizeFileName(nameWithoutExtension);
+            
             var timestamp = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss");
             var guid = Guid.NewGuid().ToString("N")[..8];
             
             return $"{nameWithoutExtension}_{timestamp}_{guid}{extension}";
+        }
+        
+        private string SanitizeFileName(string fileName)
+        {
+            // Replace non-ASCII characters with underscores
+            var sanitized = System.Text.RegularExpressions.Regex.Replace(fileName, @"[^\x20-\x7E]", "_");
+            
+            // Replace other problematic characters
+            sanitized = sanitized.Replace(" ", "_")
+                                 .Replace(":", "-")
+                                 .Replace("/", "-")
+                                 .Replace("\\", "-")
+                                 .Replace("?", "_")
+                                 .Replace("*", "_")
+                                 .Replace("<", "_")
+                                 .Replace(">", "_")
+                                 .Replace("|", "_")
+                                 .Replace("\"", "_");
+            
+            // Remove multiple consecutive underscores
+            sanitized = System.Text.RegularExpressions.Regex.Replace(sanitized, @"_{2,}", "_");
+            
+            // Trim underscores from start and end
+            sanitized = sanitized.Trim('_', '-');
+            
+            // If the result is empty, use a default name
+            if (string.IsNullOrWhiteSpace(sanitized))
+            {
+                sanitized = "file";
+            }
+            
+            return sanitized;
         }
 
         private string GetFileTypeFromExtension(string extension)

@@ -296,6 +296,19 @@
             margin-bottom: 5px;
         }
 
+        .attachment-info {
+            font-size: 12px;
+            color: rgba(0, 0, 0, 0.6);
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .message.sent .attachment-info {
+            color: rgba(255, 255, 255, 0.8);
+            border-top-color: rgba(255, 255, 255, 0.2);
+        }
+
         .message-time {
             font-size: 11px;
             opacity: 0.6;
@@ -414,10 +427,91 @@
             background: white;
         }
 
+        .selected-images-info {
+            font-size: 13px;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            padding: 10px;
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 8px;
+            display: none;
+        }
+
+        .selected-images-info.show {
+            display: block;
+        }
+
+        .image-preview-container {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .image-preview-item {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .image-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-preview-item .remove-btn {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: rgba(231, 76, 60, 0.95);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            transition: var(--transition);
+        }
+
+        .image-preview-item .remove-btn:hover {
+            background: var(--danger-color);
+            transform: scale(1.1);
+        }
+
         .message-input-container {
             display: flex;
             gap: 10px;
             align-items: flex-end;
+        }
+
+        .image-upload-btn {
+            background: white;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+
+        .image-upload-btn:hover {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: var(--primary-color);
+            transform: scale(1.05);
         }
 
         .message-input {
@@ -790,7 +884,12 @@
             </div>
 
             <div class="message-input-area" id="messageInputArea" style="display: none;">
+                <div class="selected-images-info" id="selectedImagesInfo"></div>
                 <div class="message-input-container">
+                    <input type="file" id="imageInput" multiple accept="image/*" style="display: none;">
+                    <button class="image-upload-btn" id="imageUploadBtn" title="Upload images">
+                        <i class="fas fa-image"></i>
+                    </button>
                     <textarea 
                         class="message-input" 
                         id="messageInput" 
@@ -876,6 +975,7 @@
         let conversations = [];
         let currentUser = null;
         let currentConversation = null; // Track the current conversation object
+        let selectedImages = []; // Track selected images for upload
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
@@ -907,6 +1007,15 @@
             document.getElementById('newConversationForm').addEventListener('submit', createConversation);
             document.getElementById('sendBtn').addEventListener('click', sendMessage);
             document.getElementById('refreshBtn').addEventListener('click', loadConversations);
+            
+            // Image upload listeners
+            document.getElementById('imageUploadBtn').addEventListener('click', function() {
+                document.getElementById('imageInput').click();
+            });
+            
+            document.getElementById('imageInput').addEventListener('change', function(e) {
+                handleImageSelection(e.target.files);
+            });
             
             // Mode toggle listeners
             document.getElementById('aiModeBtn').addEventListener('click', () => switchMode('ai'));
@@ -1052,13 +1161,20 @@
                 const isUserMessage = message.senderId && 
                                      message.senderId.toString().toLowerCase() === currentUser.id.toString().toLowerCase();
 
+                // Check for attachments
+                const attachmentCount = message.attachments?.length || 0;
+                const attachmentText = attachmentCount > 0 
+                    ? `<div class="attachment-info">📎 ${attachmentCount} image${attachmentCount > 1 ? 's' : ''} attached</div>` 
+                    : '';
+
                 return `
                     <div class="message ${isUserMessage ? 'sent' : ''}">
                         <div class="message-avatar">
                             ${message.senderId ? (message.sender?.name?.charAt(0).toUpperCase() || 'U') : 'AI'}
                         </div>
                         <div class="message-content">
-                            <div class="message-text">${message.content}</div>
+                            <div class="message-text">${message.content || 'Image message'}</div>
+                            ${attachmentText}
                             <div class="message-time">
                                 ${new Date(message.createdAt).toLocaleTimeString()}
                             </div>
@@ -1141,6 +1257,96 @@
             }
         }
 
+        function handleImageSelection(files) {
+            // Add to existing selected images instead of replacing
+            selectedImages = [...selectedImages, ...Array.from(files)];
+            updateSelectedImagesIndicator();
+        }
+
+        function removeImage(index) {
+            selectedImages.splice(index, 1);
+            updateSelectedImagesIndicator();
+            if (selectedImages.length === 0) {
+                document.getElementById('imageInput').value = '';
+            }
+        }
+
+        function updateSelectedImagesIndicator() {
+            const indicator = document.getElementById('selectedImagesInfo');
+            if (selectedImages.length > 0) {
+                let html = `<div style="margin-bottom: 8px; font-weight: 500;">
+                    <i class="fas fa-images"></i> ${selectedImages.length} image${selectedImages.length > 1 ? 's' : ''} selected
+                </div>`;
+                html += '<div class="image-preview-container">';
+                
+                selectedImages.forEach((file, index) => {
+                    const previewId = `preview-${index}-${Date.now()}`;
+                    html += `<div class="image-preview-item" id="${previewId}">
+                        <img src="" alt="Loading..." data-index="${index}">
+                        <button class="remove-btn" onclick="removeImage(${index})">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>`;
+                });
+                
+                html += '</div>';
+                indicator.innerHTML = html;
+                indicator.classList.add('show');
+                
+                // Load image previews
+                selectedImages.forEach((file, index) => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = indicator.querySelector(`img[data-index="${index}"]`);
+                        if (img) {
+                            img.src = e.target.result;
+                            img.alt = file.name;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                });
+            } else {
+                indicator.classList.remove('show');
+                indicator.innerHTML = '';
+            }
+        }
+
+        async function uploadImages() {
+            const uploadedAttachments = [];
+            const token = localStorage.getItem('authToken');
+            
+            for (const image of selectedImages) {
+                try {
+                    const formData = new FormData();
+                    formData.append('file', image);
+                    formData.append('fileType', 'image');
+                    
+                    const response = await fetch(`${API_URL}/api/media/upload`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: formData
+                    });
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        uploadedAttachments.push({
+                            url: result.url,
+                            blobName: result.blobName,
+                            type: 'image',
+                            name: image.name,
+                            size: result.size
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error uploading image:', error);
+                }
+            }
+            
+            return uploadedAttachments;
+        }
+
         async function switchMode(newMode) {
             if (!currentConversation || currentConversation.conversationMode === newMode) return;
             
@@ -1187,27 +1393,53 @@
             const messageInput = document.getElementById('messageInput');
             const content = messageInput.value.trim();
             
-            if (!content) return;
+            if (!content && selectedImages.length === 0) return;
             
             // Check if conversation is in AI mode
             const isAiMode = currentConversation.conversationMode === 'ai';
             
-            // Clear input immediately for better UX
+            // Disable send button while processing
+            const sendBtn = document.getElementById('sendBtn');
+            sendBtn.disabled = true;
+            
+            // Upload images if any
+            let attachments = [];
+            if (selectedImages.length > 0) {
+                sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+                attachments = await uploadImages();
+                
+                if (attachments.length === 0) {
+                    alert('Failed to upload images. Please try again.');
+                    sendBtn.disabled = false;
+                    sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>Send';
+                    return;
+                }
+            }
+            
+            // Clear input and images immediately for better UX
             messageInput.value = '';
             messageInput.style.height = 'auto';
+            selectedImages = [];
+            document.getElementById('imageInput').value = '';
+            updateSelectedImagesIndicator();
             
             // Add optimistic message immediately
             const messagesArea = document.getElementById('messagesArea');
             const optimisticMessageId = 'optimistic-' + Date.now();
             
-            // Add user message optimistically
+            // Add user message optimistically with attachment indicator
+            const attachmentText = attachments.length > 0 
+                ? `<div class="attachment-info">📎 ${attachments.length} image${attachments.length > 1 ? 's' : ''} attached</div>` 
+                : '';
+            
             const userMessageHtml = `
                 <div class="message sent optimistic" id="${optimisticMessageId}">
                     <div class="message-avatar">
                         ${currentUser.name?.charAt(0).toUpperCase() || 'U'}
                     </div>
                     <div class="message-content">
-                        <div class="message-text">${content}</div>
+                        <div class="message-text">${content || 'Image message'}</div>
+                        ${attachmentText}
                         <div class="message-time">
                             ${new Date().toLocaleTimeString()}
                         </div>
@@ -1235,8 +1467,7 @@
                 messagesArea.scrollTop = messagesArea.scrollHeight;
             }
             
-            const sendBtn = document.getElementById('sendBtn');
-            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>Send';
             
             try {
                 const token = localStorage.getItem('authToken');
@@ -1244,8 +1475,9 @@
                 // Send message - backend will check conversation mode
                 const requestBody = {
                     conversationId: currentConversationId,
-                    content: content,
-                    messageType: 'text'
+                    content: content || '',
+                    messageType: attachments.length > 0 && attachments[0].type === 'image' ? 'image' : 'text',
+                    attachments: attachments.length > 0 ? attachments : null
                 };
                 
                 const response = await fetch(`${API_URL}/api/chat/send`, {

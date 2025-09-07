@@ -16,7 +16,7 @@ namespace NutrishaAI.API.Controllers
     {
         private readonly Client _supabaseClient;
         private readonly ISupabaseRealtimeService _realtimeService;
-        // private readonly IAzureBlobService _blobService;
+        private readonly IAzureBlobService _blobService;
         private readonly IGeminiService _geminiService;
         private readonly ISimpleGeminiService _simpleGeminiService;
         // private readonly IQdrantService _qdrantService;
@@ -25,7 +25,7 @@ namespace NutrishaAI.API.Controllers
         public ChatController(
             Client supabaseClient,
             ISupabaseRealtimeService realtimeService,
-            // IAzureBlobService blobService,
+            IAzureBlobService blobService,
             IGeminiService geminiService,
             ISimpleGeminiService simpleGeminiService,
             // IQdrantService qdrantService,
@@ -33,7 +33,7 @@ namespace NutrishaAI.API.Controllers
         {
             _supabaseClient = supabaseClient;
             _realtimeService = realtimeService;
-            // _blobService = blobService;
+            _blobService = blobService;
             _geminiService = geminiService;
             _simpleGeminiService = simpleGeminiService;
             // _qdrantService = qdrantService;
@@ -201,6 +201,7 @@ namespace NutrishaAI.API.Controllers
                     Content = m.Content,
                     MessageType = m.MessageType,
                     IsAiGenerated = m.IsAiGenerated,
+                    Attachments = ConvertAttachmentsFromJson(m.Attachments),
                     CreatedAt = m.CreatedAt
                 });
 
@@ -242,6 +243,7 @@ namespace NutrishaAI.API.Controllers
                     Content = request.Content,
                     MessageType = request.MessageType,
                     IsAiGenerated = false,
+                    Attachments = request.Attachments, // Store attachments in JSONB column
                     CreatedAt = DateTime.UtcNow
                 };
 
@@ -289,9 +291,50 @@ namespace NutrishaAI.API.Controllers
                     var conversationContext = string.Join("\n", 
                         recentMessages.Models.Select(m => $"{(m.IsAiGenerated ? "AI" : "User")}: {m.Content}"));
                     
+                    // Build prompt with attachment context
+                    string combinedPrompt = request.Content ?? "";
+                    string attachmentPrompt = "";
+                    
+                    if (request.Attachments != null && request.Attachments.Any())
+                    {
+                        // Group attachments by type
+                        var imageCount = request.Attachments.Count(a => a.Type == "image");
+                        var documentCount = request.Attachments.Count(a => a.Type == "document");
+                        var voiceCount = request.Attachments.Count(a => a.Type == "voice");
+                        
+                        var attachmentDescriptions = new List<string>();
+                        
+                        if (imageCount > 0)
+                        {
+                            attachmentDescriptions.Add($"{imageCount} photo{(imageCount > 1 ? "s" : "")}");
+                            attachmentPrompt += $"Please check the {imageCount} photo{(imageCount > 1 ? "s" : "")} the user has shared. ";
+                        }
+                        
+                        if (documentCount > 0)
+                        {
+                            attachmentDescriptions.Add($"{documentCount} document{(documentCount > 1 ? "s" : "")}");
+                            attachmentPrompt += $"Please read the {documentCount} document{(documentCount > 1 ? "s" : "")} the user has provided. ";
+                        }
+                        
+                        if (voiceCount > 0)
+                        {
+                            attachmentDescriptions.Add($"{voiceCount} voice note{(voiceCount > 1 ? "s" : "")}");
+                            attachmentPrompt += $"Please listen to the {voiceCount} voice note{(voiceCount > 1 ? "s" : "")} from the user. ";
+                        }
+                        
+                        if (attachmentDescriptions.Any())
+                        {
+                            attachmentPrompt += "Based on the attachments, provide nutritional guidance and health insights. ";
+                            
+                            // Note: In a real implementation, you would process the actual files here
+                            // For now, we're just acknowledging their presence
+                            combinedPrompt = $"{attachmentPrompt}\n\nUser message: {request.Content ?? "No text message"}\n\n[User has shared: {string.Join(", ", attachmentDescriptions)}]";
+                        }
+                    }
+                    
                     // Generate AI nutritionist response
                     var aiResponseText = await _simpleGeminiService.GenerateNutritionistResponseAsync(
-                        request.Content ?? "", 
+                        combinedPrompt, 
                         conversationContext);
                     
                     // Create AI response message
@@ -363,6 +406,7 @@ namespace NutrishaAI.API.Controllers
                     Content = message.Content,
                     MessageType = message.MessageType,
                     IsAiGenerated = message.IsAiGenerated,
+                    Attachments = ConvertToMediaAttachmentResponses(request.Attachments),
                     CreatedAt = message.CreatedAt
                 };
 
@@ -415,8 +459,7 @@ namespace NutrishaAI.API.Controllers
                 if (!string.IsNullOrEmpty(request.BlobName))
                 {
                     // Get full blob URL
-                    // var blobUrl = await _blobService.GetBlobUrlAsync(request.BlobName, "user-uploads");
-                    var blobUrl = "";
+                    var blobUrl = await _blobService.GetBlobUrlAsync(request.BlobName, "user-uploads");
 
                     var attachment = new MediaAttachment
                     {
@@ -438,10 +481,8 @@ namespace NutrishaAI.API.Controllers
                     if (!string.IsNullOrEmpty(request.BlobName))
                     {
                         // Download blob from Azure Storage
-                        // using var blobStream = await _blobService.DownloadFileAsync(request.BlobName, "user-uploads");
-                        // var blobInfo = await _blobService.GetBlobInfoAsync(request.BlobName, "user-uploads");
-                        using var blobStream = new MemoryStream();
-                        var blobInfo = new { ContentType = "audio/webm" };
+                        using var blobStream = await _blobService.DownloadFileAsync(request.BlobName, "user-uploads");
+                        var blobInfo = await _blobService.GetBlobInfoAsync(request.BlobName, "user-uploads");
                         
                         // Process with Gemini AI
                         var geminiResponse = await _geminiService.ProcessMultimediaAsync(
@@ -538,10 +579,8 @@ namespace NutrishaAI.API.Controllers
                     return Unauthorized();
 
                 // Get blob from Azure Storage
-                // using var blobStream = await _blobService.DownloadFileAsync(request.BlobName, "user-uploads");
-                // var blobInfo = await _blobService.GetBlobInfoAsync(request.BlobName, "user-uploads");
-                using var blobStream = new MemoryStream();
-                var blobInfo = new { ContentType = "audio/webm" };
+                using var blobStream = await _blobService.DownloadFileAsync(request.BlobName, "user-uploads");
+                var blobInfo = await _blobService.GetBlobInfoAsync(request.BlobName, "user-uploads");
                 
                 // Process with Gemini AI
                 var geminiResponse = await _geminiService.ProcessMultimediaAsync(
@@ -582,8 +621,7 @@ namespace NutrishaAI.API.Controllers
                 {
                     MessageId = Guid.NewGuid(),
                     AiResponse = geminiResponse.Text,
-                    // BlobUrl = await _blobService.GetBlobUrlAsync(request.BlobName, "user-uploads"),
-                    BlobUrl = "",
+                    BlobUrl = await _blobService.GetBlobUrlAsync(request.BlobName, "user-uploads"),
                     ExtractedHealthData = new Dictionary<string, object>
                     {
                         { "foods", healthData.Foods },
@@ -647,6 +685,44 @@ namespace NutrishaAI.API.Controllers
             {
                 _logger.LogError(ex, "Error leaving chat channel");
                 return StatusCode(500, new { error = "Failed to leave chat channel" });
+            }
+        }
+
+        private List<MediaAttachmentResponse>? ConvertToMediaAttachmentResponses(List<AttachmentDto>? attachments)
+        {
+            if (attachments == null || !attachments.Any())
+                return null;
+
+            return attachments.Select(a => new MediaAttachmentResponse
+            {
+                Id = Guid.NewGuid(),
+                FileUrl = a.Url,
+                FileType = a.Type,
+                FileName = a.Name,
+                FileSize = a.Size.HasValue ? (int)a.Size.Value : null,
+                CreatedAt = DateTime.UtcNow
+            }).ToList();
+        }
+
+        private List<MediaAttachmentResponse>? ConvertAttachmentsFromJson(object? attachmentsJson)
+        {
+            if (attachmentsJson == null)
+                return null;
+
+            try
+            {
+                // Convert JSONB to List<AttachmentDto>
+                var json = attachmentsJson.ToString();
+                if (string.IsNullOrEmpty(json))
+                    return null;
+
+                var attachments = System.Text.Json.JsonSerializer.Deserialize<List<AttachmentDto>>(json);
+                return ConvertToMediaAttachmentResponses(attachments);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to deserialize attachments from JSON");
+                return null;
             }
         }
 

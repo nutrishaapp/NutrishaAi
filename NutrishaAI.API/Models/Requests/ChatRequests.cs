@@ -10,6 +10,17 @@ namespace NutrishaAI.API.Models.Requests
         public string? Content { get; set; }
         
         public string MessageType { get; set; } = "text";
+        
+        public List<AttachmentDto>? Attachments { get; set; }
+    }
+    
+    public class AttachmentDto
+    {
+        public string Url { get; set; } = string.Empty;
+        public string BlobName { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public long? Size { get; set; }
     }
 
     public class SendMultimediaMessageRequest

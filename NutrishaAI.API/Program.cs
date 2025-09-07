@@ -153,6 +153,15 @@ builder.Services.AddCors(options =>
 // Add AutoMapper
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
+// Register services
+builder.Services.AddScoped<IAzureBlobService, AzureBlobService>();
+// Commenting out GeminiService as it requires Google Cloud credentials
+// builder.Services.AddScoped<IGeminiService, GeminiService>();
+builder.Services.AddScoped<ISimpleGeminiService, SimpleGeminiService>();
+builder.Services.AddScoped<ISupabaseRealtimeService, SupabaseRealtimeService>();
+builder.Services.AddScoped<IApiKeyService, ApiKeyService>();
+builder.Services.AddScoped<IAppConfigService, AppConfigService>();
+
 // Add health checks
 builder.Services.AddHealthChecks();
 

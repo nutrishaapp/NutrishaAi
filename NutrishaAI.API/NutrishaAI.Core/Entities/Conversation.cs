@@ -23,6 +23,9 @@ namespace NutrishaAI.Core.Entities
         [Column("status")]
         public string Status { get; set; } = "active"; // active, closed, archived
         
+        [Column("conversation_mode")]
+        public string ConversationMode { get; set; } = "ai"; // ai, human
+        
         [Column("created_at")]
         public DateTime CreatedAt { get; set; }
         

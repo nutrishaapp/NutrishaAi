@@ -33,6 +33,7 @@ namespace NutrishaAI.API.Models.Responses
         public Guid? NutritionistId { get; set; }
         public string? Title { get; set; }
         public string Status { get; set; } = "active";
+        public string ConversationMode { get; set; } = "ai";
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public UserResponse? User { get; set; }

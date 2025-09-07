@@ -633,6 +633,72 @@
             to { transform: rotate(360deg); }
         }
 
+        /* Mode Toggle Button */
+        .mode-toggle {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            padding: 4px;
+            border-radius: 25px;
+            position: relative;
+        }
+
+        .mode-toggle-option {
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #666;
+            background: transparent;
+            border: none;
+        }
+
+        .mode-toggle-option.active {
+            background: white;
+            color: var(--primary-color);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .mode-toggle-option:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .mode-toggle-option i {
+            font-size: 14px;
+        }
+
+        .chat-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .action-btn {
+            background: transparent;
+            border: 1px solid #ddd;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #666;
+        }
+
+        .action-btn:hover {
+            background: var(--light-color);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .messages-container {
@@ -690,20 +756,20 @@
             <div class="chat-header">
                 <h2 class="chat-title" id="chatTitle">Select a conversation</h2>
                 <div class="chat-actions">
+                    <div class="mode-toggle" id="modeToggle" style="display: none;">
+                        <button class="mode-toggle-option active" data-mode="ai" id="aiModeBtn">
+                            <i class="fas fa-robot"></i>
+                            AI
+                        </button>
+                        <button class="mode-toggle-option" data-mode="human" id="humanModeBtn">
+                            <i class="fas fa-user"></i>
+                            Human
+                        </button>
+                    </div>
                     <button class="action-btn" id="refreshBtn">
                         <i class="fas fa-sync-alt"></i>
                         Refresh
                     </button>
-                    <div class="mode-toggle">
-                        <button class="toggle-option" id="humanMode">
-                            <i class="fas fa-user"></i>
-                            Human
-                        </button>
-                        <button class="toggle-option active" id="aiMode">
-                            <i class="fas fa-robot"></i>
-                            AI
-                        </button>
-                    </div>
                 </div>
             </div>
 
@@ -772,6 +838,28 @@
                     >
                 </div>
                 
+                <div class="form-group">
+                    <label class="form-label">Conversation Mode</label>
+                    <div class="mode-selector">
+                        <label class="mode-option">
+                            <input type="radio" name="conversationMode" value="ai" checked>
+                            <span class="mode-label">
+                                <i class="fas fa-robot"></i>
+                                AI Assistant
+                                <small>Get AI-powered nutrition advice</small>
+                            </span>
+                        </label>
+                        <label class="mode-option">
+                            <input type="radio" name="conversationMode" value="human">
+                            <span class="mode-label">
+                                <i class="fas fa-user"></i>
+                                Human Only
+                                <small>Chat without AI responses</small>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+                
                 <div class="modal-actions">
                     <button type="button" class="btn btn-secondary" id="cancelModal">Cancel</button>
                     <button type="submit" class="btn btn-primary" id="createConversationBtn">
@@ -787,7 +875,7 @@
         let currentConversationId = null;
         let conversations = [];
         let currentUser = null;
-        let isAiMode = true; // Track conversation mode (true = AI, false = Human)
+        let currentConversation = null; // Track the current conversation object
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
@@ -820,21 +908,9 @@
             document.getElementById('sendBtn').addEventListener('click', sendMessage);
             document.getElementById('refreshBtn').addEventListener('click', loadConversations);
             
-            // Mode toggle functionality
-            const humanModeBtn = document.getElementById('humanMode');
-            const aiModeBtn = document.getElementById('aiMode');
-            
-            humanModeBtn.addEventListener('click', function() {
-                isAiMode = false;
-                humanModeBtn.classList.add('active');
-                aiModeBtn.classList.remove('active');
-            });
-            
-            aiModeBtn.addEventListener('click', function() {
-                isAiMode = true;
-                aiModeBtn.classList.add('active');
-                humanModeBtn.classList.remove('active');
-            });
+            // Mode toggle listeners
+            document.getElementById('aiModeBtn').addEventListener('click', () => switchMode('ai'));
+            document.getElementById('humanModeBtn').addEventListener('click', () => switchMode('human'));
             
             // Auto-resize message input
             const messageInput = document.getElementById('messageInput');
@@ -906,6 +982,9 @@
         function selectConversation(conversationId) {
             currentConversationId = conversationId;
             
+            // Find and store the current conversation
+            currentConversation = conversations.find(c => c.id === conversationId);
+            
             // Update UI
             document.querySelectorAll('.conversation-item').forEach(item => {
                 item.classList.remove('active');
@@ -918,9 +997,15 @@
             // Show message input area
             document.getElementById('messageInputArea').style.display = 'block';
             
-            // Update header
-            const conversation = conversations.find(c => c.id === conversationId);
-            document.getElementById('chatTitle').textContent = conversation?.title || 'Conversation';
+            // Update header and show toggle
+            document.getElementById('chatTitle').textContent = currentConversation?.title || 'Conversation';
+            
+            // Show and update mode toggle
+            const modeToggle = document.getElementById('modeToggle');
+            modeToggle.style.display = 'flex';
+            
+            // Update toggle button states
+            updateModeToggle(currentConversation?.conversationMode || 'ai');
         }
 
         async function loadConversationMessages(conversationId) {
@@ -1043,13 +1128,69 @@
             }
         }
 
+        function updateModeToggle(mode) {
+            const aiBtn = document.getElementById('aiModeBtn');
+            const humanBtn = document.getElementById('humanModeBtn');
+            
+            if (mode === 'human') {
+                aiBtn.classList.remove('active');
+                humanBtn.classList.add('active');
+            } else {
+                aiBtn.classList.add('active');
+                humanBtn.classList.remove('active');
+            }
+        }
+
+        async function switchMode(newMode) {
+            if (!currentConversation || currentConversation.conversationMode === newMode) return;
+            
+            try {
+                const token = localStorage.getItem('authToken');
+                const response = await fetch(`${API_URL}/api/chat/conversations/${currentConversation.id}/mode`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ mode: newMode })
+                });
+
+                if (response.ok) {
+                    // Update local state
+                    currentConversation.conversationMode = newMode;
+                    
+                    // Update UI
+                    updateModeToggle(newMode);
+                    
+                    // Update conversation list
+                    const convIndex = conversations.findIndex(c => c.id === currentConversation.id);
+                    if (convIndex !== -1) {
+                        conversations[convIndex].conversationMode = newMode;
+                        displayConversations();
+                        
+                        // Re-select to maintain active state
+                        document.querySelector(`[data-id="${currentConversation.id}"]`)?.classList.add('active');
+                    }
+                } else {
+                    console.error('Failed to update conversation mode');
+                    alert('Failed to update conversation mode. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error updating conversation mode:', error);
+                alert('Error updating conversation mode. Please try again.');
+            }
+        }
+
         async function sendMessage() {
-            if (!currentConversationId) return;
+            if (!currentConversationId || !currentConversation) return;
             
             const messageInput = document.getElementById('messageInput');
             const content = messageInput.value.trim();
             
             if (!content) return;
+            
+            // Check if conversation is in AI mode
+            const isAiMode = currentConversation.conversationMode === 'ai';
             
             // Clear input immediately for better UX
             messageInput.value = '';
@@ -1100,20 +1241,14 @@
             try {
                 const token = localStorage.getItem('authToken');
                 
-                // Use different endpoint or parameter based on mode
-                const endpoint = isAiMode ? `${API_URL}/api/chat/send` : `${API_URL}/api/chat/send`;
+                // Send message - backend will check conversation mode
                 const requestBody = {
                     conversationId: currentConversationId,
                     content: content,
                     messageType: 'text'
                 };
                 
-                // Add a flag to indicate if AI response is needed
-                if (!isAiMode) {
-                    requestBody.skipAiResponse = true;
-                }
-                
-                const response = await fetch(endpoint, {
+                const response = await fetch(`${API_URL}/api/chat/send`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,

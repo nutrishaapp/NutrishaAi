@@ -56,6 +56,7 @@ namespace NutrishaAI.API.Controllers
                     NutritionistId = request.NutritionistId,
                     Title = request.Title ?? $"Conversation {DateTime.UtcNow:yyyy-MM-dd}",
                     Status = "active",
+                    ConversationMode = request.ConversationMode ?? "ai",
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
@@ -71,6 +72,7 @@ namespace NutrishaAI.API.Controllers
                     NutritionistId = conversation.NutritionistId,
                     Title = conversation.Title,
                     Status = conversation.Status,
+                    ConversationMode = conversation.ConversationMode,
                     CreatedAt = conversation.CreatedAt,
                     UpdatedAt = conversation.UpdatedAt,
                     MessageCount = 0
@@ -82,6 +84,47 @@ namespace NutrishaAI.API.Controllers
             {
                 _logger.LogError(ex, "Error creating conversation");
                 return StatusCode(500, new { error = "Failed to create conversation" });
+            }
+        }
+
+        [HttpPut("conversations/{conversationId}/mode")]
+        public async Task<IActionResult> UpdateConversationMode(Guid conversationId, [FromBody] UpdateConversationModeRequest request)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized();
+
+                // Get the conversation
+                var conversationResult = await _supabaseClient
+                    .From<Conversation>()
+                    .Filter("id", Supabase.Postgrest.Constants.Operator.Equals, conversationId.ToString())
+                    .Filter("user_id", Supabase.Postgrest.Constants.Operator.Equals, userId)
+                    .Get();
+
+                var conversation = conversationResult.Models.FirstOrDefault();
+                if (conversation == null)
+                    return NotFound(new { error = "Conversation not found" });
+
+                // Update the mode
+                conversation.ConversationMode = request.Mode;
+                conversation.UpdatedAt = DateTime.UtcNow;
+
+                await _supabaseClient
+                    .From<Conversation>()
+                    .Where(c => c.Id == conversationId)
+                    .Update(conversation);
+
+                return Ok(new { 
+                    message = "Conversation mode updated successfully",
+                    mode = request.Mode 
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating conversation mode");
+                return StatusCode(500, new { error = "Failed to update conversation mode" });
             }
         }
 
@@ -107,6 +150,7 @@ namespace NutrishaAI.API.Controllers
                     NutritionistId = c.NutritionistId,
                     Title = c.Title,
                     Status = c.Status,
+                    ConversationMode = c.ConversationMode,
                     CreatedAt = c.CreatedAt,
                     UpdatedAt = c.UpdatedAt
                 });
@@ -229,10 +273,12 @@ namespace NutrishaAI.API.Controllers
                     _logger.LogWarning(ex, "Failed to send realtime message for conversation {ConversationId}", request.ConversationId);
                 }
 
-                // Generate AI response with SimpleGeminiService
-                try
+                // Generate AI response only if conversation mode is "ai"
+                if (conversation.ConversationMode == "ai")
                 {
-                    // Get recent conversation context
+                    try
+                    {
+                        // Get recent conversation context
                     var recentMessages = await _supabaseClient
                         .From<Message>()
                         .Filter("conversation_id", Supabase.Postgrest.Constants.Operator.Equals, request.ConversationId.ToString())
@@ -302,10 +348,11 @@ namespace NutrishaAI.API.Controllers
                     
                     // await _qdrantService.StoreConversationDataAsync(conversationEmbedding);
                     _logger.LogInformation("Stored conversation data in Qdrant for message {MessageId}", message.Id);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to process message with Gemini AI for conversation {ConversationId}", request.ConversationId);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to process message with Gemini AI for conversation {ConversationId}", request.ConversationId);
+                    }
                 }
 
                 var response = new MessageResponse

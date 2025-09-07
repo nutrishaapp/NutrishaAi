@@ -31,6 +31,7 @@ namespace NutrishaAI.API.Models.Requests
     {
         public string? Title { get; set; }
         public Guid? NutritionistId { get; set; }
+        public string ConversationMode { get; set; } = "ai"; // ai or human
     }
 
     public class ProcessMultimediaRequest
@@ -57,5 +58,12 @@ namespace NutrishaAI.API.Models.Requests
         public string? Context { get; set; }
         
         public bool ExtractHealthData { get; set; } = false;
+    }
+
+    public class UpdateConversationModeRequest
+    {
+        [Required]
+        [RegularExpression("^(ai|human)$", ErrorMessage = "Mode must be either 'ai' or 'human'")]
+        public string Mode { get; set; } = "ai";
     }
 }

@@ -3,6 +3,12 @@ using System.Text.Json;
 
 namespace NutrishaAI.API.Services
 {
+    public class GeminiJsonResponse
+    {
+        public string Reply { get; set; } = string.Empty;
+        public int ContentCategory { get; set; }
+    }
+
     public interface ISimpleGeminiService
     {
         Task<string> GenerateResponseAsync(string prompt);
@@ -103,6 +109,187 @@ namespace NutrishaAI.API.Services
             }
         }
 
+        private string CleanJsonResponse(string rawResponse)
+        {
+            // Remove common markdown code block markers
+            rawResponse = System.Text.RegularExpressions.Regex.Replace(
+                rawResponse, 
+                @"```json\s*|\s*```", 
+                "", 
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            
+            // Remove common prefixes
+            var prefixes = new[] { "json:", "JSON:", "Here's my response:", "Response:", "Here is the JSON:" };
+            foreach (var prefix in prefixes)
+            {
+                var index = rawResponse.IndexOf(prefix, StringComparison.OrdinalIgnoreCase);
+                if (index >= 0 && index < 50) // Only remove if prefix is near the beginning
+                {
+                    rawResponse = rawResponse.Substring(index + prefix.Length);
+                    break;
+                }
+            }
+            
+            return rawResponse.Trim();
+        }
+
+        private string ExtractJsonFromResponse(string response)
+        {
+            // Try to find JSON object boundaries with smart brace matching
+            var startIndex = response.IndexOf('{');
+            
+            if (startIndex < 0)
+                return string.Empty;
+            
+            var braceCount = 0;
+            var inString = false;
+            var escapeNext = false;
+            var endIndex = -1;
+            
+            for (int i = startIndex; i < response.Length; i++)
+            {
+                var ch = response[i];
+                
+                if (escapeNext)
+                {
+                    escapeNext = false;
+                    continue;
+                }
+                
+                if (ch == '\\' && inString)
+                {
+                    escapeNext = true;
+                    continue;
+                }
+                
+                if (ch == '"' && !escapeNext)
+                {
+                    inString = !inString;
+                }
+                
+                if (!inString)
+                {
+                    if (ch == '{')
+                        braceCount++;
+                    else if (ch == '}')
+                    {
+                        braceCount--;
+                        if (braceCount == 0)
+                        {
+                            endIndex = i;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            if (endIndex > startIndex)
+            {
+                return response.Substring(startIndex, endIndex - startIndex + 1);
+            }
+            
+            return string.Empty;
+        }
+
+        private GeminiJsonResponse ParseGeminiJsonResponse(string rawResponse)
+        {
+            try
+            {
+                // First, clean the response
+                var cleanedResponse = CleanJsonResponse(rawResponse);
+                
+                // Try to extract JSON from the cleaned response
+                var jsonText = ExtractJsonFromResponse(cleanedResponse);
+                
+                if (!string.IsNullOrEmpty(jsonText))
+                {
+                    try
+                    {
+                        // Try parsing with flexible options
+                        var response = JsonSerializer.Deserialize<GeminiJsonResponse>(jsonText, new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true,
+                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                            ReadCommentHandling = JsonCommentHandling.Skip,
+                            AllowTrailingCommas = true
+                        });
+                        
+                        if (response != null)
+                        {
+                            // Validate the response
+                            if (string.IsNullOrWhiteSpace(response.Reply))
+                            {
+                                response.Reply = cleanedResponse;
+                            }
+                            
+                            // Ensure content category is in valid range (0-2)
+                            if (response.ContentCategory < 0 || response.ContentCategory > 2)
+                            {
+                                response.ContentCategory = 0; // Default to general conversation
+                            }
+                            
+                            return response;
+                        }
+                    }
+                    catch (JsonException jsonEx)
+                    {
+                        _logger.LogWarning(jsonEx, "JSON deserialization failed for extracted text: {JsonText}", jsonText);
+                    }
+                }
+                
+                // Fallback: Try to extract just the reply field using regex
+                var replyMatch = System.Text.RegularExpressions.Regex.Match(
+                    cleanedResponse,
+                    @"""reply""\s*:\s*""([^""\\]*(?:\\.[^""\\]*)*)""",
+                    System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                
+                var categoryMatch = System.Text.RegularExpressions.Regex.Match(
+                    cleanedResponse,
+                    @"""contentCategory""\s*:\s*(\d+)",
+                    System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                
+                if (replyMatch.Success && replyMatch.Groups.Count > 1)
+                {
+                    var reply = System.Text.RegularExpressions.Regex.Unescape(replyMatch.Groups[1].Value);
+                    var category = 0;
+                    
+                    if (categoryMatch.Success && categoryMatch.Groups.Count > 1)
+                    {
+                        if (int.TryParse(categoryMatch.Groups[1].Value, out var parsedCategory))
+                        {
+                            category = Math.Max(0, Math.Min(2, parsedCategory)); // Clamp to 0-2
+                        }
+                    }
+                    
+                    return new GeminiJsonResponse
+                    {
+                        Reply = reply,
+                        ContentCategory = category
+                    };
+                }
+                
+                // Final fallback: use the cleaned response as-is
+                _logger.LogWarning("All JSON parsing attempts failed, using raw response: {Response}", cleanedResponse.Substring(0, Math.Min(100, cleanedResponse.Length)));
+                
+                return new GeminiJsonResponse
+                {
+                    Reply = cleanedResponse,
+                    ContentCategory = 0
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Critical error parsing Gemini response");
+                
+                // Absolute fallback
+                return new GeminiJsonResponse
+                {
+                    Reply = rawResponse,
+                    ContentCategory = 0
+                };
+            }
+        }
+
         public async Task<string> GenerateNutritionistResponseAsync(string userMessage, string? conversationContext = null)
         {
             // Get both system prompt and JSON structure from config service
@@ -126,7 +313,14 @@ User Message: {userMessage}
 
 {jsonStructure}";
 
-            return await GenerateResponseAsync(fullPrompt);
+            // Get raw JSON response from Gemini
+            var rawResponse = await GenerateResponseAsync(fullPrompt);
+            
+            // Parse JSON and extract reply + contentCategory
+            var parsedResponse = ParseGeminiJsonResponse(rawResponse);
+            
+            // Return formatted message: "reply text (Content:0)"
+            return $"{parsedResponse.Reply} (Content:{parsedResponse.ContentCategory})";
         }
 
         public async Task<string> ProcessTextAsync(string text, string? context = null)

@@ -39,7 +39,13 @@
       "Bash(cat:*)",
       "Read(//var/folders/sb/281s399j7zzbg2rbr1bh_hp00000gn/T/TemporaryItems/NSIRD_screencaptureui_Ye81Bq/**)",
       "Read(//var/folders/sb/281s399j7zzbg2rbr1bh_hp00000gn/T/TemporaryItems/NSIRD_screencaptureui_Z2NSGS/**)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "Bash(/Users/osamahislam/Documents/NutrishaAi/prompt-extractor.sh:*)",
+      "Read(//var/folders/sb/281s399j7zzbg2rbr1bh_hp00000gn/T/TemporaryItems/NSIRD_screencaptureui_2VaOAx/**)",
+      "Read(//var/folders/sb/281s399j7zzbg2rbr1bh_hp00000gn/T/TemporaryItems/NSIRD_screencaptureui_7HtrTN/**)",
+      "Read(//var/folders/sb/281s399j7zzbg2rbr1bh_hp00000gn/T/TemporaryItems/NSIRD_screencaptureui_76kIdn/**)",
+      "Read(//var/folders/sb/281s399j7zzbg2rbr1bh_hp00000gn/T/TemporaryItems/NSIRD_screencaptureui_a6EszN/**)",
+      "Read(//var/folders/sb/281s399j7zzbg2rbr1bh_hp00000gn/T/TemporaryItems/NSIRD_screencaptureui_uF8TN5/**)"
     ],
     "deny": []
   }

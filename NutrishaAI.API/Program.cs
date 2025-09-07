@@ -124,6 +124,8 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<IApiKeyService, ApiKeyService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<IAppConfigService, AppConfigService>();
+builder.Services.AddScoped<IAppConfigSeederService, AppConfigSeederService>();
 builder.Services.AddSingleton<ISupabaseRealtimeService, SupabaseRealtimeService>();
 // builder.Services.AddScoped<IAzureBlobService, AzureBlobService>(); // Disabled - not configured
 // builder.Services.AddScoped<IGeminiService, GeminiService>(); // Disabled - requires Google Cloud credentials
@@ -207,5 +209,19 @@ catch (Exception ex)
 // Initialize Qdrant service (temporarily disabled)
 // var qdrantService = app.Services.GetRequiredService<IQdrantService>();
 // await qdrantService.InitializeCollectionAsync();
+
+// Seed app configs with default prompts
+try
+{
+    using var scope = app.Services.CreateScope();
+    var seederService = scope.ServiceProvider.GetRequiredService<IAppConfigSeederService>();
+    await seederService.SeedDefaultConfigsAsync();
+    Log.Information("App configs seeded successfully");
+}
+catch (Exception ex)
+{
+    Log.Warning("Failed to seed app configs: {ErrorMessage}", ex.Message);
+    Log.Information("API will continue with default hardcoded prompts");
+}
 
 app.Run();

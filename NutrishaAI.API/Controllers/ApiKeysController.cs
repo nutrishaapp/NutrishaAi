@@ -34,7 +34,7 @@ namespace NutrishaAI.API.Controllers
                 {
                     return Unauthorized();
                 }
-
+                //test
                 var apiKey = await _apiKeyService.GenerateApiKey(
                     userId,
                     request.Name,

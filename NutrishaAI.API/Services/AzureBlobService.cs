@@ -27,12 +27,13 @@ namespace NutrishaAI.API.Services
             _configuration = configuration;
             _logger = logger;
             
-            var connectionString = configuration.GetConnectionString("AzureStorage") 
+            var connectionString = Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING")
+                ?? configuration.GetConnectionString("AzureStorage") 
                 ?? configuration["AzureStorage:ConnectionString"];
             
             if (string.IsNullOrEmpty(connectionString))
             {
-                throw new InvalidOperationException("Azure Storage connection string not configured");
+                throw new InvalidOperationException("Azure Storage connection string not configured. Set AZURE_STORAGE_CONNECTION_STRING environment variable or configure in appsettings.json");
             }
 
             _blobServiceClient = new BlobServiceClient(connectionString);

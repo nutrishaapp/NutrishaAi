@@ -6,7 +6,8 @@ class Program
 {
     static async Task Main(string[] args)
     {
-        string connectionString = "DefaultEndpointsProtocol=https;AccountName=dareurbodystorage;AccountKey=l7+ZyYWLiaVcCUQpz5Dk5BDB2u9gcrL9SIes6RBWD6p6R/BY1CorcjMaUhfmLVhDhGNfy8PUgOhtdVxVg8zNQw==;EndpointSuffix=core.windows.net";
+        string connectionString = Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING") 
+            ?? throw new InvalidOperationException("AZURE_STORAGE_CONNECTION_STRING environment variable is required");
         
         BlobServiceClient blobServiceClient = new BlobServiceClient(connectionString);
         

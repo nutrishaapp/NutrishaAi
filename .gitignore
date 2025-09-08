@@ -409,3 +409,15 @@ secrets.json
 
 # Firebase service account keys
 **/firebase-service-account-key.json
+
+# Environment variables and secrets
+.env
+.env.local
+.env.production
+.env.staging
+**/*.env
+!.env.template
+
+# API Keys and connection strings in config files
+**/appsettings.Production.json
+**/appsettings.Staging.json

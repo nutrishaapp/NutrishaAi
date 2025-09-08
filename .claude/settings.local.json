@@ -49,7 +49,9 @@
       "Bash(ls:*)",
       "Bash(/Users/osamahislam/Documents/NutrishaAi/test-image-upload.sh:*)",
       "Bash(bash:*)",
-      "Read(//var/folders/sb/281s399j7zzbg2rbr1bh_hp00000gn/T/TemporaryItems/NSIRD_screencaptureui_RjtZni/**)"
+      "Read(//var/folders/sb/281s399j7zzbg2rbr1bh_hp00000gn/T/TemporaryItems/NSIRD_screencaptureui_RjtZni/**)",
+      "Read(//var/folders/sb/281s399j7zzbg2rbr1bh_hp00000gn/T/TemporaryItems/NSIRD_screencaptureui_tnfQsW/**)",
+      "Read(//Users/osamahislam/Desktop/**)"
     ],
     "deny": []
   }

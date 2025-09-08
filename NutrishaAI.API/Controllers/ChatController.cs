@@ -301,12 +301,16 @@ namespace NutrishaAI.API.Controllers
                     
                     if (request.Attachments != null && request.Attachments.Any())
                     {
-                        var imageAttachments = request.Attachments.Where(a => a.Type == "image").ToList();
+                        var containerName = _configuration["AzureStorage:ContainerNames:UserUploads"] ?? "user-uploads";
                         
+                        // Process different attachment types
+                        var imageAttachments = request.Attachments.Where(a => a.Type == "image").ToList();
+                        var voiceAttachments = request.Attachments.Where(a => a.Type == "voice").ToList();
+                        var documentAttachments = request.Attachments.Where(a => a.Type == "document").ToList();
+                        
+                        // Process image attachments
                         if (imageAttachments.Any())
                         {
-                            var containerName = _configuration["AzureStorage:ContainerNames:UserUploads"] ?? "user-uploads";
-                            
                             foreach (var imageAttachment in imageAttachments)
                             {
                                 try
@@ -318,10 +322,13 @@ namespace NutrishaAI.API.Controllers
                                     var imageBytes = ms.ToArray();
                                     var base64Image = Convert.ToBase64String(imageBytes);
                                     
+                                    // Determine MIME type from extension
+                                    var mimeType = GetMimeTypeFromExtension(imageAttachment.Url, "image/jpeg");
+                                    
                                     attachments.Add(new AttachmentContent
                                     {
                                         Base64Data = base64Image,
-                                        MimeType = "image/jpeg", // Could be enhanced to detect actual type
+                                        MimeType = mimeType,
                                         Type = "image"
                                     });
                                 }
@@ -336,18 +343,72 @@ namespace NutrishaAI.API.Controllers
                             attachmentPrompt += $"Please analyze the {imageCount} image{(imageCount > 1 ? "s" : "")} the user has shared. ";
                         }
                         
-                        // Handle other attachment types with prompts (for future expansion)
-                        var documentCount = request.Attachments.Count(a => a.Type == "document");
-                        var voiceCount = request.Attachments.Count(a => a.Type == "voice");
-                        
-                        if (documentCount > 0)
+                        // Process voice attachments
+                        if (voiceAttachments.Any())
                         {
-                            attachmentPrompt += $"Please read the {documentCount} document{(documentCount > 1 ? "s" : "")} the user has provided. ";
+                            foreach (var voiceAttachment in voiceAttachments)
+                            {
+                                try
+                                {
+                                    // Download voice note from Azure Blob Storage
+                                    var voiceStream = await _blobService.DownloadFileAsync(voiceAttachment.Url, containerName);
+                                    using var ms = new MemoryStream();
+                                    await voiceStream.CopyToAsync(ms);
+                                    var voiceBytes = ms.ToArray();
+                                    var base64Voice = Convert.ToBase64String(voiceBytes);
+                                    
+                                    // Determine MIME type from extension
+                                    var mimeType = GetMimeTypeFromExtension(voiceAttachment.Url, "audio/webm");
+                                    
+                                    attachments.Add(new AttachmentContent
+                                    {
+                                        Base64Data = base64Voice,
+                                        MimeType = mimeType,
+                                        Type = "audio"
+                                    });
+                                }
+                                catch (Exception ex)
+                                {
+                                    _logger.LogError(ex, "Error processing voice attachment {Url}", voiceAttachment.Url);
+                                }
+                            }
+                            
+                            var voiceCount = voiceAttachments.Count;
+                            attachmentPrompt += $"Please transcribe and respond to the {voiceCount} voice note{(voiceCount > 1 ? "s" : "")} from the user. ";
                         }
                         
-                        if (voiceCount > 0)
+                        // Process document attachments
+                        if (documentAttachments.Any())
                         {
-                            attachmentPrompt += $"Please listen to the {voiceCount} voice note{(voiceCount > 1 ? "s" : "")} from the user. ";
+                            foreach (var documentAttachment in documentAttachments)
+                            {
+                                try
+                                {
+                                    // Download document from Azure Blob Storage
+                                    var documentStream = await _blobService.DownloadFileAsync(documentAttachment.Url, containerName);
+                                    using var ms = new MemoryStream();
+                                    await documentStream.CopyToAsync(ms);
+                                    var documentBytes = ms.ToArray();
+                                    var base64Document = Convert.ToBase64String(documentBytes);
+                                    
+                                    // Determine MIME type from extension
+                                    var mimeType = GetMimeTypeFromExtension(documentAttachment.Url, "application/pdf");
+                                    
+                                    attachments.Add(new AttachmentContent
+                                    {
+                                        Base64Data = base64Document,
+                                        MimeType = mimeType,
+                                        Type = "document"
+                                    });
+                                }
+                                catch (Exception ex)
+                                {
+                                    _logger.LogError(ex, "Error processing document attachment {Url}", documentAttachment.Url);
+                                }
+                            }
+                            
+                            var documentCount = documentAttachments.Count;
+                            attachmentPrompt += $"Please analyze the {documentCount} document{(documentCount > 1 ? "s" : "")} the user has provided. ";
                         }
                         
                         // Build combined prompt with attachment context
@@ -714,6 +775,36 @@ namespace NutrishaAI.API.Controllers
             }
         }
 
+        private string GetMimeTypeFromExtension(string fileName, string defaultMimeType)
+        {
+            var extension = Path.GetExtension(fileName)?.ToLowerInvariant();
+            return extension switch
+            {
+                // Images
+                ".jpg" or ".jpeg" => "image/jpeg",
+                ".png" => "image/png",
+                ".gif" => "image/gif",
+                ".webp" => "image/webp",
+                ".bmp" => "image/bmp",
+                
+                // Audio
+                ".mp3" => "audio/mpeg",
+                ".wav" => "audio/wav",
+                ".webm" => "audio/webm",
+                ".m4a" => "audio/mp4",
+                ".ogg" => "audio/ogg",
+                
+                // Documents
+                ".pdf" => "application/pdf",
+                ".doc" => "application/msword",
+                ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                ".txt" => "text/plain",
+                ".rtf" => "application/rtf",
+                
+                _ => defaultMimeType
+            };
+        }
+        
         private List<MediaAttachmentResponse>? ConvertToMediaAttachmentResponses(List<AttachmentDto>? attachments)
         {
             if (attachments == null || !attachments.Any())

@@ -110,9 +110,32 @@ User Message: {userMessage}
                                 }
                             });
                         }
-                        // Future: Add support for audio, document, etc.
-                        // else if (attachment.Type == "audio") { ... }
-                        // else if (attachment.Type == "document") { ... }
+                        else if (attachment.Type == "document" && !string.IsNullOrEmpty(attachment.Base64Data))
+                        {
+                            // Gemini API supports PDFs directly - send as inline_data
+                            parts.Add(new 
+                            { 
+                                inline_data = new 
+                                {
+                                    mime_type = "application/pdf",
+                                    data = attachment.Base64Data
+                                }
+                            });
+                            _logger.LogInformation("Added PDF document to Gemini request");
+                        }
+                        else if (attachment.Type == "audio" && !string.IsNullOrEmpty(attachment.Base64Data))
+                        {
+                            // Gemini supports audio files - send as inline_data
+                            parts.Add(new 
+                            { 
+                                inline_data = new 
+                                {
+                                    mime_type = attachment.MimeType,
+                                    data = attachment.Base64Data
+                                }
+                            });
+                            _logger.LogInformation("Added audio file to Gemini request");
+                        }
                     }
                 }
 

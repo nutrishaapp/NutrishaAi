@@ -620,6 +620,226 @@
             margin-bottom: 30px;
         }
 
+        /* Users Styles */
+        .users-container {
+            padding: 20px;
+        }
+
+        .users-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .users-title {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .users-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .users-search {
+            position: relative;
+        }
+
+        .user-search-input {
+            width: 300px;
+            padding: 12px 45px 12px 20px;
+            border: 2px solid #e0e6ed;
+            border-radius: 25px;
+            background: white;
+            transition: var(--transition);
+        }
+
+        .user-search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .refresh-users-btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .refresh-users-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .user-stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .user-stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--box-shadow);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transition: var(--transition);
+        }
+
+        .user-stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-icon.patients {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        .stat-icon.nutritionists {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+        }
+
+        .stat-icon.admins {
+            background: linear-gradient(135deg, #fa709a, #fee140);
+        }
+
+        .stat-details {
+            flex: 1;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .users-table-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            box-shadow: var(--box-shadow);
+            overflow-x: auto;
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .users-table thead th {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 2px solid #e0e6ed;
+            color: #666;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        .users-table tbody td {
+            padding: 15px 12px;
+            border-bottom: 1px solid #f0f3f7;
+        }
+
+        .users-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .user-role-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .role-patient {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .role-nutritionist {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .role-admin {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .user-actions-btns {
+            display: flex;
+            gap: 10px;
+        }
+
+        .user-action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .make-admin-btn {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .make-admin-btn:hover {
+            background: #f57c00;
+            color: white;
+        }
+
+        .remove-admin-btn {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .remove-admin-btn:hover {
+            background: #c62828;
+            color: white;
+        }
+
+        .delete-user-btn {
+            background: #ffebee;
+            color: #d32f2f;
+        }
+
+        .delete-user-btn:hover {
+            background: #d32f2f;
+            color: white;
+        }
+
         /* Documents Styles */
         .documents-container {
             padding: 20px;
@@ -1742,6 +1962,244 @@
                 min-width: auto;
             }
         }
+
+        /* Risha Editor Styles */
+        .risha-container {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .risha-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .risha-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .risha-title i {
+            color: var(--primary-color);
+            font-size: 24px;
+        }
+
+        .risha-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .save-risha-btn, .reset-risha-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition);
+            font-size: 14px;
+        }
+
+        .save-risha-btn {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .save-risha-btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .save-risha-btn:disabled {
+            background: #ccc !important;
+            cursor: not-allowed;
+            transform: none !important;
+            opacity: 0.6;
+        }
+
+        .save-risha-btn:disabled:hover {
+            background: #ccc !important;
+            transform: none !important;
+        }
+
+        .reset-risha-btn {
+            background: #6c757d;
+            color: white;
+        }
+
+        .reset-risha-btn:hover {
+            background: #5a6268;
+            transform: translateY(-1px);
+        }
+
+        .risha-editor-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .editor-toolbar {
+            background: #f8f9fa;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .editor-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .editor-label {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 16px;
+        }
+
+        .char-count {
+            font-size: 14px;
+            color: var(--text-secondary);
+            background: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+        }
+
+        .editor-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .editor-btn {
+            width: 36px;
+            height: 36px;
+            border: 1px solid #e9ecef;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            color: var(--text-secondary);
+        }
+
+        .editor-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .editor-wrapper {
+            position: relative;
+        }
+
+        .risha-editor {
+            width: 100%;
+            min-height: 500px;
+            padding: 24px;
+            border: none;
+            outline: none;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: white;
+            resize: vertical;
+            transition: var(--transition);
+        }
+
+        .risha-editor:focus {
+            box-shadow: inset 0 0 0 2px var(--primary-color);
+        }
+
+        .risha-editor::placeholder {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .editor-status {
+            background: #f8f9fa;
+            padding: 12px 20px;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+        }
+
+        .status-text {
+            color: var(--text-secondary);
+        }
+
+        .last-saved {
+            color: #28a745;
+            font-weight: 500;
+        }
+
+        /* Loading state */
+        .risha-editor.loading {
+            background: #f8f9fa;
+            color: var(--text-secondary);
+        }
+
+        /* Success state */
+        .risha-editor.saved {
+            box-shadow: inset 0 0 0 2px #28a745;
+        }
+
+        /* Error state */
+        .risha-editor.error {
+            box-shadow: inset 0 0 0 2px #dc3545;
+        }
+
+        @media (max-width: 768px) {
+            .risha-container {
+                padding: 15px;
+            }
+
+            .risha-header {
+                flex-direction: column;
+                gap: 16px;
+                align-items: stretch;
+            }
+
+            .risha-actions {
+                justify-content: center;
+            }
+
+            .editor-toolbar {
+                flex-direction: column;
+                gap: 12px;
+                padding: 12px 16px;
+            }
+
+            .editor-info {
+                justify-content: space-between;
+                width: 100%;
+            }
+
+            .risha-editor {
+                min-height: 400px;
+                padding: 16px;
+                font-size: 13px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1761,15 +2219,15 @@
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="#" class="nav-link" data-tab="app-config">
-                        <i class="nav-icon fas fa-sliders-h"></i>
-                        <span class="nav-text">App Config</span>
+                    <a href="#" class="nav-link" data-tab="risha">
+                        <i class="nav-icon">🤖</i>
+                        <span class="nav-text">Risha</span>
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="#" class="nav-link" data-tab="dashboard">
-                        <i class="nav-icon fas fa-chart-pie"></i>
-                        <span class="nav-text">Dashboard</span>
+                    <a href="#" class="nav-link" data-tab="app-config">
+                        <i class="nav-icon fas fa-sliders-h"></i>
+                        <span class="nav-text">App Config</span>
                     </a>
                 </div>
                 <div class="nav-item">
@@ -1779,33 +2237,15 @@
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="#" class="nav-link" data-tab="diet-plans">
-                        <i class="nav-icon fas fa-utensils"></i>
-                        <span class="nav-text">Diet Plans</span>
-                    </a>
-                </div>
-                <div class="nav-item">
                     <a href="#" class="nav-link" data-tab="documents">
                         <i class="nav-icon fas fa-file-alt"></i>
                         <span class="nav-text">Documents</span>
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="#" class="nav-link" data-tab="analytics">
-                        <i class="nav-icon fas fa-chart-bar"></i>
-                        <span class="nav-text">Analytics</span>
-                    </a>
-                </div>
-                <div class="nav-item">
                     <a href="#" class="nav-link" data-tab="api-keys">
                         <i class="nav-icon fas fa-key"></i>
                         <span class="nav-text">API Keys</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="#" class="nav-link" data-tab="settings">
-                        <i class="nav-icon fas fa-cog"></i>
-                        <span class="nav-text">Settings</span>
                     </a>
                 </div>
             </nav>
@@ -2004,7 +2444,7 @@
     </div>
 
     <script>
-        const API_URL = 'http://localhost:5134';
+        const API_URL = 'http://localhost:5133';
         
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function() {
@@ -2136,6 +2576,40 @@
                     </div>
                 </div>
             `,
+            risha: `
+                <div class="risha-container">
+                    <div class="risha-header">
+                        <h2 class="risha-title">
+                            🤖 Risha Personality
+                        </h2>
+                        <div class="risha-actions">
+                            <button class="save-risha-btn" onclick="saveRishaPrompt()" id="saveRishaBtn" disabled>
+                                💾 Save Changes
+                            </button>
+                            <button class="reset-risha-btn" onclick="loadRishaPrompt()">
+                                🔄 Reset
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="risha-editor-container">
+                        
+                        <div class="editor-wrapper">
+                            <textarea 
+                                id="rishaPromptEditor" 
+                                class="risha-editor"
+                                placeholder="Enter Risha's system prompt here... This will define how Risha behaves and responds to users."
+                                spellcheck="false"
+                            ></textarea>
+                        </div>
+                        
+                        <div class="editor-status" id="rishaEditorStatus">
+                            <span class="status-text">Ready to edit</span>
+                            <span class="last-saved" id="lastSaved"></span>
+                        </div>
+                    </div>
+                </div>
+            `,
             'app-config': `
                 <div class="app-config-container">
                     <div class="app-config-header">
@@ -2208,6 +2682,82 @@
                             <i class="fas fa-spinner fa-spin"></i>
                             Loading configurations...
                         </div>
+                    </div>
+                </div>
+            `,
+            users: `
+                <div class="users-container">
+                    <div class="users-header">
+                        <h2 class="users-title">User Management</h2>
+                        <div class="users-actions">
+                            <div class="users-search">
+                                <input type="text" id="userSearch" class="user-search-input" placeholder="Search users..." onkeyup="searchUsers(this.value)">
+                                <i class="fas fa-search search-icon"></i>
+                            </div>
+                            <button class="refresh-users-btn" onclick="loadUsers()">
+                                <i class="fas fa-sync-alt"></i>
+                                Refresh
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- User Stats -->
+                    <div class="user-stats-row" id="userStats">
+                        <div class="user-stat-card">
+                            <div class="stat-icon users">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-details">
+                                <div class="stat-value" id="totalUsersCount">0</div>
+                                <div class="stat-label">Total Users</div>
+                            </div>
+                        </div>
+                        <div class="user-stat-card">
+                            <div class="stat-icon patients">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="stat-details">
+                                <div class="stat-value" id="patientsCount">0</div>
+                                <div class="stat-label">Patients</div>
+                            </div>
+                        </div>
+                        <div class="user-stat-card">
+                            <div class="stat-icon nutritionists">
+                                <i class="fas fa-user-md"></i>
+                            </div>
+                            <div class="stat-details">
+                                <div class="stat-value" id="nutritionistsCount">0</div>
+                                <div class="stat-label">Nutritionists</div>
+                            </div>
+                        </div>
+                        <div class="user-stat-card">
+                            <div class="stat-icon admins">
+                                <i class="fas fa-user-shield"></i>
+                            </div>
+                            <div class="stat-details">
+                                <div class="stat-value" id="adminsCount">0</div>
+                                <div class="stat-label">Admins</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Users Table -->
+                    <div class="users-table-container">
+                        <table class="users-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Phone</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody">
+                                <!-- Users will be loaded here -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             `,
@@ -2354,6 +2904,11 @@
                 if (tab === 'conversations') {
                     loadConversations();
                 }
+                // Load Risha prompt if on risha tab
+                else if (tab === 'risha') {
+                    loadRishaPrompt();
+                    setupRishaEditor();
+                }
                 // Load app configs if on app-config tab
                 else if (tab === 'app-config') {
                     loadAppConfigs();
@@ -2361,6 +2916,11 @@
                 // Load documents if on documents tab
                 else if (tab === 'documents') {
                     loadDocuments();
+                }
+                // Load users if on users tab
+                else if (tab === 'users') {
+                    loadUsers();
+                    loadUserStats();
                 }
             } else {
                 mainContent.innerHTML = `
@@ -2539,7 +3099,7 @@
             `;
 
             try {
-                const response = await fetch('http://localhost:5134/api/config', {
+                const response = await fetch(`${API_URL}/api/config`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
@@ -2658,7 +3218,7 @@
             }
 
             try {
-                const response = await fetch(`http://localhost:5134/api/config/${encodeURIComponent(key)}`, {
+                const response = await fetch(`${API_URL}/api/config/${encodeURIComponent(key)}`, {
                     method: 'PUT',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -2695,7 +3255,7 @@
             }
 
             try {
-                const response = await fetch('http://localhost:5134/api/config/cache/clear', {
+                const response = await fetch(`${API_URL}/api/config/cache/clear`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -2855,7 +3415,7 @@
 
             try {
                 const token = localStorage.getItem('authToken');
-                const response = await fetch(`http://localhost:5134/api/config/${encodeURIComponent(currentConfig.key)}`, {
+                const response = await fetch(`${API_URL}/api/config/${encodeURIComponent(currentConfig.key)}`, {
                     method: 'PUT',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -2943,6 +3503,218 @@
                 case 'error': return 'fa-exclamation-circle';
                 case 'warning': return 'fa-exclamation-triangle';
                 default: return 'fa-info-circle';
+            }
+        }
+
+        // User Management Functions
+        let allUsers = [];
+        let filteredUsers = [];
+
+        async function loadUsers() {
+            const token = localStorage.getItem('authToken');
+            const usersTableBody = document.getElementById('usersTableBody');
+            
+            try {
+                const response = await fetch(`${API_URL}/api/users`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.status === 403) {
+                    throw new Error('Access denied. Admin privileges required.');
+                }
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load users');
+                }
+
+                allUsers = await response.json();
+                filteredUsers = [...allUsers];
+                renderUsersTable(filteredUsers);
+                
+                // Also load stats
+                loadUserStats();
+            } catch (error) {
+                console.error('Error loading users:', error);
+                const errorMessage = error.message.includes('Admin') 
+                    ? 'You need administrator privileges to access user management.'
+                    : 'Failed to load users. Please try again.';
+                    
+                usersTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 40px;">
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #e74c3c; margin-bottom: 10px;"></i>
+                                <p>${errorMessage}</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        async function loadUserStats() {
+            const token = localStorage.getItem('authToken');
+            
+            try {
+                const response = await fetch(`${API_URL}/api/users/stats`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load user stats');
+                }
+
+                const stats = await response.json();
+                document.getElementById('totalUsersCount').textContent = stats.totalUsers || 0;
+                document.getElementById('patientsCount').textContent = stats.patientCount || 0;
+                document.getElementById('nutritionistsCount').textContent = stats.nutritionistCount || 0;
+                document.getElementById('adminsCount').textContent = stats.adminCount || 0;
+            } catch (error) {
+                console.error('Error loading user stats:', error);
+            }
+        }
+
+        function renderUsersTable(users) {
+            const usersTableBody = document.getElementById('usersTableBody');
+            
+            if (users.length === 0) {
+                usersTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 40px;">
+                            <div class="empty-state">
+                                <i class="fas fa-users" style="font-size: 48px; color: #ddd; margin-bottom: 10px;"></i>
+                                <p>No users found</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            usersTableBody.innerHTML = users.map(user => `
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div class="user-avatar" style="width: 35px; height: 35px; font-size: 14px;">
+                                ${user.fullName ? user.fullName.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                                <div style="font-weight: 600;">${user.fullName || 'N/A'}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${user.email}</td>
+                    <td>
+                        <span class="user-role-badge role-${user.role}">
+                            ${user.role}
+                        </span>
+                    </td>
+                    <td>${user.phoneNumber || 'N/A'}</td>
+                    <td>${new Date(user.createdAt).toLocaleDateString()}</td>
+                    <td>
+                        <div class="user-actions-btns">
+                            ${user.role !== 'admin' ? `
+                                <button class="user-action-btn make-admin-btn" onclick="updateUserRole('${user.id}', 'admin')">
+                                    <i class="fas fa-crown"></i>
+                                    Make Admin
+                                </button>
+                            ` : user.role === 'admin' ? `
+                                <button class="user-action-btn remove-admin-btn" onclick="updateUserRole('${user.id}', 'patient')">
+                                    <i class="fas fa-user"></i>
+                                    Remove Admin
+                                </button>
+                            ` : ''}
+                            <button class="user-action-btn delete-user-btn" onclick="deleteUser('${user.id}')">
+                                <i class="fas fa-trash"></i>
+                                Delete
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function searchUsers(searchTerm) {
+            if (!searchTerm || searchTerm.trim() === '') {
+                filteredUsers = [...allUsers];
+            } else {
+                const term = searchTerm.toLowerCase();
+                filteredUsers = allUsers.filter(user => 
+                    (user.fullName && user.fullName.toLowerCase().includes(term)) ||
+                    user.email.toLowerCase().includes(term) ||
+                    (user.phoneNumber && user.phoneNumber.includes(term)) ||
+                    user.role.toLowerCase().includes(term)
+                );
+            }
+            renderUsersTable(filteredUsers);
+        }
+
+        async function updateUserRole(userId, newRole) {
+            const confirmMsg = newRole === 'admin' 
+                ? 'Are you sure you want to make this user an admin?' 
+                : 'Are you sure you want to remove admin privileges from this user?';
+            
+            if (!confirm(confirmMsg)) {
+                return;
+            }
+
+            const token = localStorage.getItem('authToken');
+            
+            try {
+                const response = await fetch(`${API_URL}/api/users/${userId}/role`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ role: newRole })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to update user role');
+                }
+
+                const result = await response.json();
+                showNotification(`User role updated to ${newRole}`, 'success');
+                loadUsers();
+                loadUserStats();
+            } catch (error) {
+                console.error('Error updating user role:', error);
+                showNotification(error.message || 'Failed to update user role', 'error');
+            }
+        }
+
+        async function deleteUser(userId) {
+            if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+                return;
+            }
+
+            const token = localStorage.getItem('authToken');
+            
+            try {
+                const response = await fetch(`${API_URL}/api/users/${userId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to delete user');
+                }
+
+                showNotification('User deleted successfully', 'success');
+                loadUsers();
+                loadUserStats();
+            } catch (error) {
+                console.error('Error deleting user:', error);
+                showNotification(error.message || 'Failed to delete user', 'error');
             }
         }
 
@@ -3293,6 +4065,232 @@
                 month: 'short', 
                 day: 'numeric' 
             });
+        }
+
+        // Risha Editor Functions
+        let rishaEditor;
+        let rishaOriginalContent = '';
+        let rishaUnsavedChanges = false;
+
+        async function loadRishaPrompt() {
+            const token = localStorage.getItem('authToken');
+            const editor = document.getElementById('rishaPromptEditor');
+            const charCount = document.getElementById('rishaCharCount');
+            const statusText = document.querySelector('#rishaEditorStatus .status-text');
+            const saveBtn = document.getElementById('saveRishaBtn');
+            
+            if (!editor) return;
+
+            try {
+                statusText.textContent = 'Loading...';
+                editor.classList.add('loading');
+                editor.disabled = true;
+
+                const response = await fetch(`${API_URL}/api/config/risha_prompt`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const config = await response.json();
+                    rishaOriginalContent = config.value || '';
+                    editor.value = rishaOriginalContent;
+                    updateCharCount();
+                    statusText.textContent = 'Ready to edit';
+                    
+                    // Update last saved timestamp
+                    if (config.updatedAt) {
+                        document.getElementById('lastSaved').textContent = 
+                            `Last saved: ${formatDate(config.updatedAt)}`;
+                    }
+                } else if (response.status === 404) {
+                    // Config doesn't exist yet
+                    rishaOriginalContent = '';
+                    editor.value = '';
+                    statusText.textContent = 'Ready to edit (new prompt)';
+                } else {
+                    throw new Error('Failed to load Risha prompt');
+                }
+            } catch (error) {
+                console.error('Error loading Risha prompt:', error);
+                statusText.textContent = 'Error loading prompt';
+                editor.classList.add('error');
+                showNotification('Failed to load Risha prompt', 'error');
+            } finally {
+                editor.classList.remove('loading');
+                editor.disabled = false;
+                rishaUnsavedChanges = false;
+                updateSaveButton();
+            }
+        }
+
+        async function saveRishaPrompt() {
+            const token = localStorage.getItem('authToken');
+            const editor = document.getElementById('rishaPromptEditor');
+            const statusText = document.querySelector('#rishaEditorStatus .status-text');
+            const saveBtn = document.getElementById('saveRishaBtn');
+            const content = editor.value;
+            
+            if (!editor || content === rishaOriginalContent) return;
+
+            try {
+                statusText.textContent = 'Saving...';
+                editor.classList.add('loading');
+                saveBtn.disabled = true;
+
+                const response = await fetch(`${API_URL}/api/config/risha_prompt`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ value: content })
+                });
+
+                if (response.ok) {
+                    rishaOriginalContent = content;
+                    rishaUnsavedChanges = false;
+                    updateSaveButton();
+                    
+                    editor.classList.add('saved');
+                    setTimeout(() => editor.classList.remove('saved'), 2000);
+                    
+                    statusText.textContent = 'Saved successfully';
+                    document.getElementById('lastSaved').textContent = 
+                        `Last saved: ${new Date().toLocaleString()}`;
+                    
+                    showNotification('Risha prompt saved successfully!', 'success');
+                } else {
+                    throw new Error('Failed to save prompt');
+                }
+            } catch (error) {
+                console.error('Error saving Risha prompt:', error);
+                statusText.textContent = 'Error saving prompt';
+                editor.classList.add('error');
+                setTimeout(() => editor.classList.remove('error'), 3000);
+                showNotification('Failed to save Risha prompt', 'error');
+            } finally {
+                editor.classList.remove('loading');
+                saveBtn.disabled = false;
+            }
+        }
+
+        function updateCharCount() {
+            const editor = document.getElementById('rishaPromptEditor');
+            const charCount = document.getElementById('rishaCharCount');
+            if (editor && charCount) {
+                const count = editor.value.length;
+                charCount.textContent = `${count.toLocaleString()} characters`;
+            }
+        }
+
+        function updateSaveButton() {
+            const saveBtn = document.getElementById('saveRishaBtn');
+            if (saveBtn) {
+                saveBtn.disabled = !rishaUnsavedChanges;
+                // Add visual feedback
+                if (rishaUnsavedChanges) {
+                    saveBtn.style.background = 'var(--primary-color)';
+                    saveBtn.style.transform = 'none';
+                } else {
+                    saveBtn.style.background = '#ccc';
+                }
+            }
+        }
+
+        function formatText(format) {
+            const editor = document.getElementById('rishaPromptEditor');
+            if (!editor) return;
+
+            const start = editor.selectionStart;
+            const end = editor.selectionEnd;
+            const selectedText = editor.value.substring(start, end);
+            
+            if (!selectedText) return;
+
+            let formattedText = selectedText;
+            switch (format) {
+                case 'bold':
+                    formattedText = `**${selectedText}**`;
+                    break;
+                case 'italic':
+                    formattedText = `*${selectedText}*`;
+                    break;
+            }
+
+            editor.value = editor.value.substring(0, start) + formattedText + editor.value.substring(end);
+            editor.focus();
+            editor.setSelectionRange(start, start + formattedText.length);
+            
+            rishaUnsavedChanges = true;
+            updateSaveButton();
+            updateCharCount();
+        }
+
+        function insertTemplate() {
+            const editor = document.getElementById('rishaPromptEditor');
+            if (!editor) return;
+
+            const template = `You are Risha, NutrishaAI's helpful and knowledgeable nutrition assistant.
+
+Your role:
+- Provide accurate, evidence-based nutrition and health advice
+- Be supportive and encouraging to users on their health journey  
+- Ask clarifying questions when needed to give personalized guidance
+- Always recommend consulting healthcare professionals for medical concerns
+
+Guidelines:
+- Use a friendly, conversational tone
+- Keep responses concise but informative
+- Focus on sustainable, realistic lifestyle changes
+- Acknowledge cultural and personal food preferences
+- Never provide medical diagnoses or replace professional medical advice
+
+Remember to be empathetic and understanding of each user's unique situation and goals.`;
+
+            const start = editor.selectionStart;
+            editor.value = editor.value.substring(0, start) + template + editor.value.substring(start);
+            editor.focus();
+            editor.setSelectionRange(start, start + template.length);
+            
+            rishaUnsavedChanges = true;
+            updateSaveButton();
+            updateCharCount();
+        }
+
+        // Setup Risha editor event listeners
+        function setupRishaEditor() {
+            setTimeout(() => {
+                const editor = document.getElementById('rishaPromptEditor');
+                if (editor) {
+                    // Remove existing listeners to avoid duplicates
+                    editor.removeEventListener('input', handleRishaInput);
+                    editor.removeEventListener('keydown', handleRishaKeydown);
+                    
+                    // Add event listeners
+                    editor.addEventListener('input', handleRishaInput);
+                    editor.addEventListener('keydown', handleRishaKeydown);
+                }
+            }, 100);
+        }
+
+        function handleRishaInput() {
+            const editor = document.getElementById('rishaPromptEditor');
+            if (editor) {
+                rishaUnsavedChanges = editor.value !== rishaOriginalContent;
+                updateSaveButton();
+                updateCharCount();
+            }
+        }
+
+        function handleRishaKeydown(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                if (rishaUnsavedChanges) {
+                    saveRishaPrompt();
+                }
+            }
         }
     </script>
 </body>

@@ -53,7 +53,10 @@
       "Read(//var/folders/sb/281s399j7zzbg2rbr1bh_hp00000gn/T/TemporaryItems/NSIRD_screencaptureui_tnfQsW/**)",
       "Read(//Users/osamahislam/Desktop/**)",
       "Read(//var/folders/sb/281s399j7zzbg2rbr1bh_hp00000gn/T/TemporaryItems/NSIRD_screencaptureui_NCVvU9/**)",
-      "Bash(/Users/osamahislam/Documents/NutrishaAi/test-document-upload.sh:*)"
+      "Bash(/Users/osamahislam/Documents/NutrishaAi/test-document-upload.sh:*)",
+      "Bash(./make-admin.sh:*)",
+      "Read(//var/folders/sb/281s399j7zzbg2rbr1bh_hp00000gn/T/TemporaryItems/NSIRD_screencaptureui_5WPtIp/**)",
+      "Read(//var/folders/sb/281s399j7zzbg2rbr1bh_hp00000gn/T/TemporaryItems/NSIRD_screencaptureui_CT0N03/**)"
     ],
     "deny": []
   }

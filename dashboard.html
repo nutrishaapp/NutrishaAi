@@ -709,76 +709,105 @@
             margin-top: 20px;
         }
 
-        .documents-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 20px;
-        }
-
-        .document-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: var(--border-radius);
-            padding: 20px;
-            box-shadow: var(--box-shadow);
-            transition: var(--transition);
-        }
-
-        .document-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-        }
-
-        .document-card-header {
+        .documents-list {
             display: flex;
-            justify-content: space-between;
-            align-items: start;
-            margin-bottom: 15px;
+            flex-direction: column;
+            gap: 12px;
         }
 
-        .document-card-header h3 {
-            font-size: 18px;
+        .document-list-item {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 12px;
+            padding: 20px 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        .document-list-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.15);
+            border-color: rgba(102, 126, 234, 0.2);
+        }
+
+        .document-list-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex: 1;
+        }
+
+        .document-icon {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            color: white;
+            font-size: 20px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .document-info {
+            flex: 1;
+        }
+
+        .document-info h3 {
+            font-size: 17px;
             font-weight: 600;
-            color: var(--dark-color);
-            margin: 0;
+            color: #1a1a2e;
+            margin: 0 0 6px 0;
+            display: inline-block;
+            letter-spacing: -0.02em;
         }
 
         .document-type-badge {
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
             font-weight: 600;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-left: 10px;
         }
 
         .document-type-badge.workout-plan {
-            background: #e3f2fd;
-            color: #1976d2;
+            background: linear-gradient(135deg, #667eea20, #764ba220);
+            color: #667eea;
+            border: 1px solid #667eea30;
         }
 
         .document-type-badge.diet-plan {
-            background: #e8f5e9;
-            color: #388e3c;
+            background: linear-gradient(135deg, #10b98120, #05966920);
+            color: #059669;
+            border: 1px solid #10b98130;
         }
 
         .document-type-badge.other {
-            background: #f5f5f5;
-            color: #616161;
+            background: #f3f4f6;
+            color: #6b7280;
+            border: 1px solid #e5e7eb;
         }
 
         .document-description {
-            color: #666;
-            margin-bottom: 15px;
+            color: #6b7280;
             font-size: 14px;
+            margin: 0 0 8px 0;
+            line-height: 1.5;
         }
 
         .document-meta {
             display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-bottom: 15px;
+            align-items: center;
+            gap: 16px;
             font-size: 13px;
-            color: #999;
+            color: #9ca3af;
         }
 
         .document-meta span {
@@ -790,22 +819,103 @@
         .document-tags {
             display: flex;
             flex-wrap: wrap;
-            gap: 5px;
-            margin-bottom: 15px;
+            gap: 6px;
+            margin-top: 10px;
         }
 
         .document-tags .tag {
-            padding: 4px 10px;
-            background: #f0f0f0;
-            border-radius: 15px;
+            padding: 3px 10px;
+            background: #f9fafb;
+            color: #6b7280;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
             font-size: 12px;
-            color: #666;
+            transition: all 0.2s ease;
+        }
+
+        .document-tags .tag:hover {
+            background: #f3f4f6;
+            border-color: #d1d5db;
         }
 
         .document-actions {
             display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .document-actions .icon-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 16px;
+            position: relative;
+        }
+
+        .document-actions .icon-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .document-actions .icon-btn.view {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .document-actions .icon-btn.view:hover {
+            background: #e5e7eb;
+            color: #4b5563;
+        }
+
+        .document-actions .icon-btn.edit {
+            background: #fef3c7;
+            color: #f59e0b;
+        }
+
+        .document-actions .icon-btn.edit:hover {
+            background: #fed7aa;
+            color: #ea580c;
+        }
+
+        .document-actions .icon-btn.download {
+            background: #dbeafe;
+            color: #3b82f6;
+        }
+
+        .document-actions .icon-btn.download:hover {
+            background: #bfdbfe;
+            color: #2563eb;
+        }
+
+        .document-actions .icon-btn.delete {
+            background: #fee2e2;
+            color: #ef4444;
+        }
+
+        .document-actions .icon-btn.delete:hover {
+            background: #fecaca;
+            color: #dc2626;
+        }
+
+        .document-actions .icon-btn[data-tooltip]:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 44px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a1a2e;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 1000;
+            pointer-events: none;
         }
 
         .btn-sm {
@@ -2875,32 +2985,46 @@
             }
 
             documentsList.innerHTML = `
-                <div class="documents-grid">
-                    ${documents.map(doc => `
-                        <div class="document-card">
-                            <div class="document-card-header">
-                                <h3>${doc.name}</h3>
-                                <span class="document-type-badge ${doc.documentType.replace('_', '-')}">${doc.documentType.replace('_', ' ')}</span>
-                            </div>
-                            ${doc.description ? `<p class="document-description">${doc.description}</p>` : ''}
-                            <div class="document-meta">
-                                <span><i class="fas fa-file"></i> ${formatFileSize(doc.fileSize)}</span>
-                                <span><i class="fas fa-calendar"></i> ${formatDate(doc.createdAt)}</span>
-                                <span class="status-badge ${doc.status}">${doc.status}</span>
-                            </div>
-                            ${doc.tags && doc.tags.length > 0 ? `
-                                <div class="document-tags">
-                                    ${doc.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                <div class="documents-list">
+                    ${documents.map(doc => {
+                        const getIconForType = (type) => {
+                            switch(type) {
+                                case 'diet_plan': return 'fa-utensils';
+                                case 'workout_plan': return 'fa-dumbbell';
+                                case 'medical_report': return 'fa-file-medical';
+                                default: return 'fa-file-alt';
+                            }
+                        };
+                        
+                        return `
+                        <div class="document-list-item">
+                            <div class="document-list-left">
+                                <div class="document-icon">
+                                    <i class="fas ${getIconForType(doc.documentType)}"></i>
                                 </div>
-                            ` : ''}
+                                <div class="document-info">
+                                    <h3>${doc.name} <span class="document-type-badge ${doc.documentType.replace('_', '-')}">${doc.documentType.replace('_', ' ')}</span></h3>
+                                    ${doc.description ? `<p class="document-description">${doc.description}</p>` : ''}
+                                    <div class="document-meta">
+                                        <span><i class="fas fa-file"></i> ${formatFileSize(doc.fileSize)}</span>
+                                        <span><i class="fas fa-calendar"></i> ${formatDate(doc.createdAt)}</span>
+                                        <span class="status-badge ${doc.status}">${doc.status}</span>
+                                    </div>
+                                    ${doc.tags && doc.tags.length > 0 ? `
+                                        <div class="document-tags">
+                                            ${doc.tags.filter(tag => tag.toLowerCase() !== 'i apologize').map(tag => `<span class="tag">${tag}</span>`).join('')}
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            </div>
                             <div class="document-actions">
-                                ${doc.content ? `<button class="btn btn-sm btn-secondary" onclick="viewDocumentContent('${doc.id}')"><i class="fas fa-eye"></i> View</button>` : ''}
-                                <button class="btn btn-sm btn-warning" onclick="editDocument('${doc.id}')"><i class="fas fa-edit"></i> Edit</button>
-                                <button class="btn btn-sm btn-primary" onclick="downloadDocument('${doc.id}', '${doc.originalFilename}')"><i class="fas fa-download"></i> Download</button>
-                                <button class="btn btn-sm btn-danger" onclick="deleteDocument('${doc.id}')"><i class="fas fa-trash"></i> Delete</button>
+                                ${doc.content ? `<button type="button" class="icon-btn view" onclick="viewDocumentContent('${doc.id}')" data-tooltip="View Content"><i class="fas fa-eye"></i></button>` : ''}
+                                <button type="button" class="icon-btn edit" onclick="editDocument('${doc.id}')" data-tooltip="Edit"><i class="fas fa-edit"></i></button>
+                                <button type="button" class="icon-btn download" onclick="downloadDocument('${doc.id}', '${doc.originalFilename}')" data-tooltip="Download"><i class="fas fa-download"></i></button>
+                                <button type="button" class="icon-btn delete" onclick="deleteDocument('${doc.id}')" data-tooltip="Delete"><i class="fas fa-trash"></i></button>
                             </div>
                         </div>
-                    `).join('')}
+                    `}).join('')}
                 </div>
             `;
         }

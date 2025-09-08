@@ -221,7 +221,6 @@ namespace NutrishaAI.API.Controllers
         public DateTime ExtractedAt { get; set; }
         public float? ConfidenceScore { get; set; }
         public Guid? VerifiedBy { get; set; }
-        public string? QdrantPointId { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 

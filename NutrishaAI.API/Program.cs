@@ -131,7 +131,6 @@ builder.Services.AddSingleton<ISupabaseRealtimeService, SupabaseRealtimeService>
 builder.Services.AddScoped<IGeminiService, SimpleGeminiService>();
 builder.Services.AddScoped<ISimpleGeminiService, SimpleGeminiService>();
 builder.Services.AddHttpClient<ISimpleGeminiService, SimpleGeminiService>();
-// builder.Services.AddScoped<IQdrantService, QdrantService>();
 
 // Configure CORS
 builder.Services.AddCors(options =>
@@ -213,9 +212,6 @@ catch (Exception ex)
     Log.Information("API will continue without realtime functionality");
 }
 
-// Initialize Qdrant service (temporarily disabled)
-// var qdrantService = app.Services.GetRequiredService<IQdrantService>();
-// await qdrantService.InitializeCollectionAsync();
 
 // Seed app configs with default prompts
 try

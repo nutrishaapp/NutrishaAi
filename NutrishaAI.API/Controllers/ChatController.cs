@@ -19,7 +19,6 @@ namespace NutrishaAI.API.Controllers
         private readonly IAzureBlobService _blobService;
         private readonly IGeminiService _geminiService;
         private readonly ISimpleGeminiService _simpleGeminiService;
-        // private readonly IQdrantService _qdrantService;
         private readonly ILogger<ChatController> _logger;
         private readonly IConfiguration _configuration;
 
@@ -29,7 +28,6 @@ namespace NutrishaAI.API.Controllers
             IAzureBlobService blobService,
             IGeminiService geminiService,
             ISimpleGeminiService simpleGeminiService,
-            // IQdrantService qdrantService,
             ILogger<ChatController> logger,
             IConfiguration configuration)
         {
@@ -38,7 +36,6 @@ namespace NutrishaAI.API.Controllers
             _blobService = blobService;
             _geminiService = geminiService;
             _simpleGeminiService = simpleGeminiService;
-            // _qdrantService = qdrantService;
             _logger = logger;
             _configuration = configuration;
         }
@@ -473,31 +470,6 @@ namespace NutrishaAI.API.Controllers
                         }
                     }
                     
-                    // Store health data in Qdrant vector database
-                    // var conversationEmbedding = new ConversationEmbedding
-                    // {
-                    //     UserId = Guid.Parse(userId),
-                    //     ConversationId = request.ConversationId,
-                    //     MessageId = message.Id,
-                    //     Content = request.Content ?? "",
-                    //     ContentType = "text",
-                    //     Timestamp = DateTime.UtcNow,
-                    //     ExtractedHealthData = new Dictionary<string, object>
-                    //     {
-                    //         { "foods", healthData.Foods },
-                    //         { "exercises", healthData.Exercises },
-                    //         { "symptoms", healthData.Symptoms },
-                    //         { "dietary_restrictions", healthData.DietaryRestrictions },
-                    //         { "health_goals", healthData.HealthGoals },
-                    //         { "measurements", healthData.Measurements }
-                    //     },
-                    //     MessageType = request.MessageType,
-                    //     AiResponse = aiResponseText,
-                    //     Priority = !string.IsNullOrEmpty(healthData.Summary) ? 2 : 1
-                    // };
-                    
-                    // await _qdrantService.StoreConversationDataAsync(conversationEmbedding);
-                    _logger.LogInformation("Stored conversation data in Qdrant for message {MessageId}", message.Id);
                     }
                     catch (Exception ex)
                     {
@@ -619,31 +591,6 @@ namespace NutrishaAI.API.Controllers
                             await _realtimeService.SendMessageAsync(request.ConversationId, aiMessage);
                         }
                         
-                        // Store extracted data in Qdrant vector database
-                        // var multimediaEmbedding = new ConversationEmbedding
-                        // {
-                        //     UserId = Guid.Parse(userId),
-                        //     ConversationId = request.ConversationId,
-                        //     MessageId = message.Id,
-                        //     Content = geminiResponse.Text,
-                        //     ContentType = geminiResponse.ContentType,
-                        //     Timestamp = DateTime.UtcNow,
-                        //     ExtractedHealthData = new Dictionary<string, object>
-                        //     {
-                        //         { "foods", healthData.Foods },
-                        //         { "exercises", healthData.Exercises },
-                        //         { "symptoms", healthData.Symptoms },
-                        //         { "dietary_restrictions", healthData.DietaryRestrictions },
-                        //         { "health_goals", healthData.HealthGoals },
-                        //         { "measurements", healthData.Measurements }
-                        //     },
-                        //     MessageType = request.MessageType,
-                        //     AiResponse = geminiResponse.Text,
-                        //     Priority = 2 // Higher priority for multimedia content
-                        // };
-                        
-                        // await _qdrantService.StoreConversationDataAsync(multimediaEmbedding);
-                        _logger.LogInformation("Stored multimedia conversation data in Qdrant for message {MessageId}", message.Id);
                     }
                 }
                 catch (Exception ex)
@@ -691,29 +638,6 @@ namespace NutrishaAI.API.Controllers
                     request.TextPrompt);
                 
                 
-                // Store extracted data in Qdrant vector database
-                // var processedEmbedding = new ConversationEmbedding
-                // {
-                //     UserId = Guid.Parse(userId),
-                //     ConversationId = request.ConversationId,
-                //     Content = geminiResponse.Text,
-                //     ContentType = geminiResponse.ContentType,
-                //     Timestamp = DateTime.UtcNow,
-                //     ExtractedHealthData = new Dictionary<string, object>
-                //     {
-                //         { "foods", healthData.Foods },
-                //         { "exercises", healthData.Exercises },
-                //         { "symptoms", healthData.Symptoms },
-                //         { "dietary_restrictions", healthData.DietaryRestrictions },
-                //         { "health_goals", healthData.HealthGoals },
-                //         { "measurements", healthData.Measurements }
-                //     },
-                //     MessageType = request.MessageType,
-                //     AiResponse = geminiResponse.Text,
-                //     Priority = 3 // Highest priority for processed multimedia
-                // };
-                
-                // await _qdrantService.StoreConversationDataAsync(processedEmbedding);
                 
                 return Ok(new ProcessedMessageResponse
                 {

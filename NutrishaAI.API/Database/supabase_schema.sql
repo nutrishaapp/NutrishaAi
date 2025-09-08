@@ -65,7 +65,6 @@ CREATE TABLE IF NOT EXISTS public.patient_health_data (
     extracted_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()),
     confidence_score FLOAT CHECK (confidence_score >= 0 AND confidence_score <= 1),
     verified_by UUID REFERENCES public.users(id),
-    qdrant_point_id VARCHAR(255),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
 );
 

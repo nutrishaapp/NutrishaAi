@@ -19,6 +19,7 @@ namespace NutrishaAI.API.Controllers
         private readonly IAzureBlobService _blobService;
         private readonly IGeminiService _geminiService;
         private readonly ISimpleGeminiService _simpleGeminiService;
+        private readonly IFirebaseNotificationService _notificationService;
         private readonly ILogger<ChatController> _logger;
         private readonly IConfiguration _configuration;
 
@@ -28,6 +29,7 @@ namespace NutrishaAI.API.Controllers
             IAzureBlobService blobService,
             IGeminiService geminiService,
             ISimpleGeminiService simpleGeminiService,
+            IFirebaseNotificationService notificationService,
             ILogger<ChatController> logger,
             IConfiguration configuration)
         {
@@ -36,6 +38,7 @@ namespace NutrishaAI.API.Controllers
             _blobService = blobService;
             _geminiService = geminiService;
             _simpleGeminiService = simpleGeminiService;
+            _notificationService = notificationService;
             _logger = logger;
             _configuration = configuration;
         }
@@ -293,6 +296,44 @@ namespace NutrishaAI.API.Controllers
                 catch (Exception ex)
                 {
                     _logger.LogWarning(ex, "Failed to send realtime message for conversation {ConversationId}", request.ConversationId);
+                }
+
+                // Send push notification if nutritionist sends message to patient
+                try
+                {
+                    var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+                    if ((userRole == "nutritionist" || userRole == "admin") && conversation.UserId != Guid.Parse(userId))
+                    {
+                        // Nutritionist is sending message to patient - send push notification
+                        var notificationRequest = new SendNotificationRequest
+                        {
+                            Title = "Message from your Nutritionist",
+                            Body = string.IsNullOrEmpty(message.Content) 
+                                ? "You received a new message" 
+                                : (message.Content.Length > 100 ? message.Content.Substring(0, 100) + "..." : message.Content),
+                            Data = new Dictionary<string, string>
+                            {
+                                { "type", "message" },
+                                { "conversationId", conversation.Id.ToString() },
+                                { "senderId", userId },
+                                { "messageType", message.MessageType }
+                            }
+                        };
+
+                        var result = await _notificationService.SendNotificationToUserAsync(conversation.UserId.ToString(), notificationRequest);
+                        if (result.Success)
+                        {
+                            _logger.LogInformation("Push notification sent successfully for message in conversation {ConversationId}", conversation.Id);
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Failed to send push notification for conversation {ConversationId}: {Error}", conversation.Id, result.Error);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to send push notification for conversation {ConversationId}", request.ConversationId);
                 }
 
                 // Generate AI response only if conversation mode is "ai"

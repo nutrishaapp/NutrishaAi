@@ -406,3 +406,6 @@ secrets.json
 
 # Assembly attribute files
 **/*.AssemblyAttributes.cs
+
+# Firebase service account keys
+**/firebase-service-account-key.json

@@ -120,18 +120,6 @@ builder.Services.AddAuthentication(options =>
 })
 .AddScheme<ApiKeyAuthOptions, ApiKeyAuthenticationHandler>("ApiKey", null);
 
-// Register services
-builder.Services.AddMemoryCache();
-builder.Services.AddScoped<IApiKeyService, ApiKeyService>();
-builder.Services.AddScoped<IJwtService, JwtService>();
-builder.Services.AddScoped<IAppConfigService, AppConfigService>();
-builder.Services.AddScoped<IAppConfigSeederService, AppConfigSeederService>();
-builder.Services.AddSingleton<ISupabaseRealtimeService, SupabaseRealtimeService>();
-// builder.Services.AddScoped<IAzureBlobService, AzureBlobService>(); // Disabled - not configured
-builder.Services.AddScoped<IGeminiService, SimpleGeminiService>();
-builder.Services.AddScoped<ISimpleGeminiService, SimpleGeminiService>();
-builder.Services.AddHttpClient<ISimpleGeminiService, SimpleGeminiService>();
-
 // Configure CORS
 builder.Services.AddCors(options =>
 {
@@ -151,13 +139,19 @@ builder.Services.AddCors(options =>
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 // Register services
-builder.Services.AddScoped<IAzureBlobService, AzureBlobService>();
-builder.Services.AddScoped<ISimpleGeminiService, SimpleGeminiService>();
-builder.Services.AddScoped<ISupabaseRealtimeService, SupabaseRealtimeService>();
+builder.Services.AddMemoryCache();
 builder.Services.AddScoped<IApiKeyService, ApiKeyService>();
+builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IAppConfigService, AppConfigService>();
+builder.Services.AddScoped<IAppConfigSeederService, AppConfigSeederService>();
+builder.Services.AddSingleton<ISupabaseRealtimeService, SupabaseRealtimeService>();
+builder.Services.AddScoped<IAzureBlobService, AzureBlobService>();
+builder.Services.AddScoped<IGeminiService, SimpleGeminiService>();
+builder.Services.AddScoped<ISimpleGeminiService, SimpleGeminiService>();
+builder.Services.AddHttpClient<ISimpleGeminiService, SimpleGeminiService>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<IDocumentExtractionService, DocumentExtractionService>();
+builder.Services.AddScoped<IFirebaseNotificationService, FirebaseNotificationService>();
 
 // Add health checks
 builder.Services.AddHealthChecks();

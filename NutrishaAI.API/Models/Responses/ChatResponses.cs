@@ -46,7 +46,6 @@ namespace NutrishaAI.API.Models.Responses
     {
         public Guid MessageId { get; set; }
         public string? Transcription { get; set; }
-        public Dictionary<string, object>? ExtractedHealthData { get; set; }
         public string? AiResponse { get; set; }
         public string BlobUrl { get; set; } = string.Empty;
     }
@@ -61,7 +60,6 @@ namespace NutrishaAI.API.Models.Responses
     public class DirectAiChatResponse
     {
         public string AiResponse { get; set; } = string.Empty;
-        public object? ExtractedHealthData { get; set; }
         public DateTime ProcessedAt { get; set; }
     }
 }

@@ -238,13 +238,33 @@ namespace NutrishaAI.API.Controllers
                 if (conversation == null)
                     return NotFound(new { error = "Conversation not found" });
 
+                // Determine message type based on attachments
+                string messageType = "text";
+                if (request.Attachments != null && request.Attachments.Any())
+                {
+                    // Get the primary attachment type
+                    var primaryAttachment = request.Attachments.First();
+                    messageType = primaryAttachment.Type switch
+                    {
+                        "document" => "document",
+                        "image" => "image",
+                        "voice" => "voice",
+                        "audio" => "voice",
+                        _ => request.MessageType ?? "text"
+                    };
+                }
+                else if (!string.IsNullOrEmpty(request.MessageType))
+                {
+                    messageType = request.MessageType;
+                }
+
                 var message = new Message
                 {
                     Id = Guid.NewGuid(),
                     ConversationId = request.ConversationId,
                     SenderId = Guid.Parse(userId),
                     Content = request.Content,
-                    MessageType = request.MessageType,
+                    MessageType = messageType,
                     IsAiGenerated = false,
                     Attachments = request.Attachments, // Store attachments in JSONB column
                     CreatedAt = DateTime.UtcNow
@@ -577,11 +597,6 @@ namespace NutrishaAI.API.Controllers
                             blobInfo.ContentType, 
                             request.Content);
                         
-                        // Extract health data
-                        var healthData = await _geminiService.ExtractHealthDataAsync(
-                            geminiResponse.Text, 
-                            geminiResponse.ContentType);
-                        
                         // Create AI response message
                         if (!string.IsNullOrEmpty(geminiResponse.Text))
                         {
@@ -675,10 +690,6 @@ namespace NutrishaAI.API.Controllers
                     blobInfo.ContentType, 
                     request.TextPrompt);
                 
-                // Extract health data
-                var healthData = await _geminiService.ExtractHealthDataAsync(
-                    geminiResponse.Text, 
-                    geminiResponse.ContentType);
                 
                 // Store extracted data in Qdrant vector database
                 // var processedEmbedding = new ConversationEmbedding
@@ -708,17 +719,7 @@ namespace NutrishaAI.API.Controllers
                 {
                     MessageId = Guid.NewGuid(),
                     AiResponse = geminiResponse.Text,
-                    BlobUrl = await _blobService.GetBlobUrlAsync(request.BlobName, "user-uploads"),
-                    ExtractedHealthData = new Dictionary<string, object>
-                    {
-                        { "foods", healthData.Foods },
-                        { "exercises", healthData.Exercises },
-                        { "symptoms", healthData.Symptoms },
-                        { "dietary_restrictions", healthData.DietaryRestrictions },
-                        { "health_goals", healthData.HealthGoals },
-                        { "measurements", healthData.Measurements },
-                        { "summary", healthData.Summary }
-                    }
+                    BlobUrl = await _blobService.GetBlobUrlAsync(request.BlobName, "user-uploads")
                 });
             }
             catch (Exception ex)
@@ -857,17 +858,9 @@ namespace NutrishaAI.API.Controllers
                     request.Message, 
                     request.Context);
                 
-                // Extract health data if requested
-                HealthDataExtractionResult? healthData = null;
-                if (request.ExtractHealthData)
-                {
-                    healthData = await _geminiService.ExtractHealthDataAsync(request.Message, "text");
-                }
-
                 return Ok(new DirectAiChatResponse
                 {
                     AiResponse = aiResponse,
-                    ExtractedHealthData = healthData,
                     ProcessedAt = DateTime.UtcNow
                 });
             }

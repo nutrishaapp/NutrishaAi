@@ -67,8 +67,6 @@ namespace NutrishaAI.API.Models.Requests
         public string Message { get; set; } = string.Empty;
         
         public string? Context { get; set; }
-        
-        public bool ExtractHealthData { get; set; } = false;
     }
 
     public class UpdateConversationModeRequest

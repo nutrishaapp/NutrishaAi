@@ -16,6 +16,21 @@ namespace NutrishaAI.API.Services
         public string Type { get; set; } = string.Empty; // "image", "audio", "document", etc.
     }
 
+    public class GeminiResponse
+    {
+        public string Text { get; set; } = string.Empty;
+        public string ContentType { get; set; } = string.Empty;
+        public DateTime ProcessedAt { get; set; }
+    }
+
+    public interface IGeminiService
+    {
+        Task<string> ProcessTextAsync(string text, string? context = null);
+        Task<GeminiResponse> ProcessMultimediaAsync(Stream fileStream, string contentType, string? textPrompt = null);
+        Task<GeminiResponse> ProcessImageAsync(Stream imageStream, string? textPrompt = null);
+        Task<GeminiResponse> ProcessVoiceNoteAsync(Stream audioStream, string? textPrompt = null);
+    }
+
     public interface ISimpleGeminiService
     {
         Task<string> GenerateNutritionistResponseAsync(string userMessage, string? conversationContext = null, List<AttachmentContent>? attachments = null);
@@ -24,7 +39,6 @@ namespace NutrishaAI.API.Services
     public class SimpleGeminiService : ISimpleGeminiService, IGeminiService
     {
         private readonly HttpClient _httpClient;
-        private readonly IConfiguration _configuration;
         private readonly IAppConfigService _configService;
         private readonly ILogger<SimpleGeminiService> _logger;
         private readonly string _apiKey;
@@ -38,7 +52,6 @@ namespace NutrishaAI.API.Services
             ILogger<SimpleGeminiService> logger)
         {
             _httpClient = httpClient;
-            _configuration = configuration;
             _configService = configService;
             _logger = logger;
             
@@ -449,11 +462,7 @@ User Message: {userMessage}
                 {
                     Text = response,
                     ContentType = "image",
-                    ProcessedAt = DateTime.UtcNow,
-                    Metadata = new Dictionary<string, object>
-                    {
-                        { "imageSize", imageBytes.Length }
-                    }
+                    ProcessedAt = DateTime.UtcNow
                 };
             }
             catch (Exception ex)
@@ -492,78 +501,6 @@ User Message: {userMessage}
                     Text = "I apologize, but I couldn't process the audio. Please try typing your question instead.",
                     ContentType = "audio",
                     ProcessedAt = DateTime.UtcNow
-                };
-            }
-        }
-
-        public async Task<HealthDataExtractionResult> ExtractHealthDataAsync(string content, string contentType)
-        {
-            try
-            {
-                var promptTemplate = await _configService.GetConfigAsync("health_data_extraction_prompt");
-                
-                if (string.IsNullOrEmpty(promptTemplate))
-                {
-                    _logger.LogWarning("Missing configuration: health_data_extraction_prompt not found");
-                    return new HealthDataExtractionResult
-                    {
-                        Summary = "Configuration error: Unable to extract health data",
-                        ExtractedAt = DateTime.UtcNow,
-                        OriginalContent = content,
-                        ContentType = contentType
-                    };
-                }
-
-                var userMessage = promptTemplate
-                    .Replace("{contentType}", contentType)
-                    .Replace("{content}", content);
-
-                // Use the unified nutritionist response method
-                var textResponse = await GenerateNutritionistResponseAsync(userMessage);
-                
-                HealthDataExtractionResult result;
-                try
-                {
-                    var jsonStart = textResponse.IndexOf('{');
-                    var jsonEnd = textResponse.LastIndexOf('}');
-                    if (jsonStart >= 0 && jsonEnd > jsonStart)
-                    {
-                        var jsonText = textResponse.Substring(jsonStart, jsonEnd - jsonStart + 1);
-                        result = JsonSerializer.Deserialize<HealthDataExtractionResult>(jsonText) ?? new HealthDataExtractionResult();
-                    }
-                    else
-                    {
-                        result = new HealthDataExtractionResult
-                        {
-                            Summary = textResponse,
-                            ExtractedAt = DateTime.UtcNow
-                        };
-                    }
-                }
-                catch (JsonException)
-                {
-                    result = new HealthDataExtractionResult
-                    {
-                        Summary = textResponse,
-                        ExtractedAt = DateTime.UtcNow
-                    };
-                }
-
-                result.ExtractedAt = DateTime.UtcNow;
-                result.OriginalContent = content;
-                result.ContentType = contentType;
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error extracting health data with Gemini");
-                return new HealthDataExtractionResult
-                {
-                    Summary = "Error extracting health data",
-                    ExtractedAt = DateTime.UtcNow,
-                    OriginalContent = content,
-                    ContentType = contentType
                 };
             }
         }

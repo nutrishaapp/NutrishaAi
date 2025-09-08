@@ -1332,7 +1332,7 @@
                     if (response.ok) {
                         const result = await response.json();
                         uploadedAttachments.push({
-                            url: result.url,
+                            url: result.blobName,  // Use blob name for consistency with backend
                             blobName: result.blobName,
                             type: 'image',
                             name: image.name,

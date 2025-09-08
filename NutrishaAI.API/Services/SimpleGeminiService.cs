@@ -34,6 +34,7 @@ namespace NutrishaAI.API.Services
     public interface ISimpleGeminiService
     {
         Task<string> GenerateNutritionistResponseAsync(string userMessage, string? conversationContext = null, List<AttachmentContent>? attachments = null);
+        Task<string> ExtractContentAsync(string prompt, List<AttachmentContent>? attachments = null);
     }
 
     public class SimpleGeminiService : ISimpleGeminiService, IGeminiService
@@ -95,6 +96,21 @@ User Message: {userMessage}
             {
                 _logger.LogError(ex, "Error generating nutritionist response");
                 return "I apologize, but I'm experiencing technical difficulties. Please try again later.";
+            }
+        }
+
+        public async Task<string> ExtractContentAsync(string prompt, List<AttachmentContent>? attachments = null)
+        {
+            try
+            {
+                // Direct Gemini API call without nutritionist prompt or JSON formatting
+                var rawResponse = await GenerateGeminiResponseAsync(prompt, attachments);
+                return rawResponse;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error extracting content with Gemini API");
+                return "Failed to extract content from the document.";
             }
         }
 
@@ -439,10 +455,13 @@ User Message: {userMessage}
         {
             try
             {
-                using var ms = new MemoryStream();
+                // Don't use 'using' here to avoid disposing the stream prematurely
+                var ms = new MemoryStream();
+                imageStream.Position = 0; // Reset position
                 await imageStream.CopyToAsync(ms);
                 var imageBytes = ms.ToArray();
                 var base64Image = Convert.ToBase64String(imageBytes);
+                ms.Dispose();
 
                 // Use the unified nutritionist response method with image attachment
                 var attachments = new List<AttachmentContent>

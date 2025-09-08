@@ -157,6 +157,8 @@ builder.Services.AddScoped<ISimpleGeminiService, SimpleGeminiService>();
 builder.Services.AddScoped<ISupabaseRealtimeService, SupabaseRealtimeService>();
 builder.Services.AddScoped<IApiKeyService, ApiKeyService>();
 builder.Services.AddScoped<IAppConfigService, AppConfigService>();
+builder.Services.AddScoped<IDocumentService, DocumentService>();
+builder.Services.AddScoped<IDocumentExtractionService, DocumentExtractionService>();
 
 // Add health checks
 builder.Services.AddHealthChecks();

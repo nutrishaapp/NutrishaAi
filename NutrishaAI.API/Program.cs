@@ -153,6 +153,12 @@ builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<IDocumentExtractionService, DocumentExtractionService>();
 builder.Services.AddScoped<IFirebaseNotificationService, FirebaseNotificationService>();
 
+// Register new chat-related services
+builder.Services.AddScoped<IConversationService, ConversationService>();
+builder.Services.AddScoped<IMessageService, MessageService>();
+builder.Services.AddScoped<IAttachmentProcessingService, AttachmentProcessingService>();
+builder.Services.AddScoped<IChatOrchestrationService, ChatOrchestrationService>();
+
 // Add health checks
 builder.Services.AddHealthChecks();
 

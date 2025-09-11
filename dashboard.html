@@ -2470,6 +2470,142 @@
                 position: static;
             }
         }
+
+        /* Pinned Plans Styles */
+        .pinned-plans-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .pinned-plans-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: linear-gradient(135deg, #F48776 0%, #E67E5B 100%);
+            color: white;
+            border-radius: 12px;
+            position: relative;
+        }
+
+        .pinned-plans-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .pinned-plans-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin: 0 0 20px 0;
+        }
+
+        .pinned-plans-actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .pinned-plans-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            background: #fafafa;
+            border-radius: 12px;
+            border: 2px dashed #e0e0e0;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .empty-state p {
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+        }
+
+        .plan-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid #f0f0f0;
+        }
+
+        .plan-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+
+        .plan-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .plan-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .plan-meta {
+            display: flex;
+            gap: 15px;
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        .plan-description {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .plan-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: space-between;
+        }
+
+        @media (max-width: 768px) {
+            .pinned-plans-container {
+                padding: 15px;
+            }
+
+            .pinned-plans-title {
+                font-size: 2rem;
+            }
+
+            .pinned-plans-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .plan-actions {
+                flex-direction: column;
+                gap: 8px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -2510,6 +2646,12 @@
                     <a href="#" class="nav-link" data-tab="documents">
                         <i class="nav-icon fas fa-file-alt"></i>
                         <span class="nav-text">Documents</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" data-tab="pinned-plans">
+                        <i class="nav-icon fas fa-thumbtack"></i>
+                        <span class="nav-text">Pinned Plans</span>
                     </a>
                 </div>
                 <div class="nav-item">
@@ -3145,6 +3287,31 @@
                     </div>
                 </div>
             `,
+            'pinned-plans': `
+                <div class="pinned-plans-container">
+                    <div class="pinned-plans-header">
+                        <h2 class="pinned-plans-title">📌 Pinned Plans</h2>
+                        <p class="pinned-plans-subtitle">Your bookmarked and favorite meal plans</p>
+                        <div class="pinned-plans-actions">
+                            <button class="btn-refresh" onclick="loadPinnedPlans()">
+                                <i class="fas fa-sync-alt"></i>
+                                Refresh
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="pinned-plans-grid" id="pinnedPlansGrid">
+                        <div class="empty-state">
+                            <div class="empty-icon">📌</div>
+                            <h3>No Pinned Plans Yet</h3>
+                            <p>Pin your favorite meal plans to access them quickly from here.</p>
+                            <button class="btn-primary" onclick="showTab('conversations')">
+                                Browse Plans
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `,
             documentation: `
                 <div class="documentation-container">
                     <div class="documentation-header">
@@ -3154,7 +3321,7 @@
                         <!-- API Statistics -->
                         <div class="api-stats">
                             <div class="stat-item">
-                                <div class="stat-number">65+</div>
+                                <div class="stat-number">73+</div>
                                 <div class="stat-label">API Endpoints</div>
                             </div>
                             <div class="stat-item">
@@ -4284,91 +4451,62 @@ Content-Disposition: attachment; filename="photo.jpg"</pre>
                                 Pinned Plans
                             </h3>
                             <div class="section-description">
-                                Endpoints for managing user's pinned plans (active diet/workout plans).
+                                Endpoints for managing user's pinned plans (diet, workout, medication, supplement plans).
                             </div>
                             
                             <div class="endpoints-list">
-                                <!-- Pin Plan -->
+                                <!-- Create Pinned Plan -->
                                 <div class="endpoint-item">
                                     <div class="endpoint-header">
                                         <span class="method method-post">POST</span>
-                                        <span class="endpoint-path">/api/plans/pin</span>
-                                        <span class="endpoint-description">Pin a plan for easy access</span>
+                                        <span class="endpoint-path">/api/pinned-plans</span>
+                                        <span class="endpoint-description">Create/Pin a new plan</span>
                                     </div>
                                     <div class="endpoint-details">
                                         <div class="request-section">
                                             <h5>Headers:</h5>
-                                            <pre class="code-block">Authorization: Bearer {access_token}</pre>
+                                            <pre class="code-block">Authorization: Bearer {access_token}
+Content-Type: application/json</pre>
                                             <h5>Request Body:</h5>
                                             <pre class="code-block">{
-  "planType": "diet" | "workout" | "meal",
-  "planId": "plan-12345",
-  "planContent": "Detailed plan content...",
-  "goals": ["weight_loss", "muscle_gain"],
-  "endDate": "2025-02-01",
-  "reminderSettings": {
-    "enabled": true,
-    "frequency": "daily"
-  }
+  "planType": "diet" | "workout" | "medication" | "supplement",
+  "planId": "uuid-optional",
+  "planContent": {
+    "title": "Mediterranean Diet Plan",
+    "description": "A healthy Mediterranean-style diet plan",
+    "duration": "4 weeks"
+  },
+  "startDate": "2025-01-15",
+  "endDate": "2025-02-15"
 }</pre>
                                         </div>
                                         <div class="response-section">
-                                            <h5>Response (200 OK):</h5>
+                                            <h5>Response (201 Created):</h5>
                                             <pre class="code-block">{
-  "id": "pinned-67890",
-  "userId": "user-12345",
+  "id": "d347c210-1686-4827-ac78-20dd9e922ebd",
+  "userId": "c9e2f45d-d60b-4b41-bcda-29cca98f9491",
   "planType": "diet",
-  "planId": "plan-12345",
-  "planContent": "Detailed plan content...",
-  "goals": ["weight_loss"],
-  "startDate": "2025-01-01",
-  "endDate": "2025-02-01",
+  "planId": null,
+  "planContent": {
+    "title": "Mediterranean Diet Plan",
+    "description": "A healthy Mediterranean-style diet plan",
+    "duration": "4 weeks"
+  },
+  "startDate": "2025-01-15T00:00:00Z",
+  "endDate": "2025-02-15T00:00:00Z",
   "isActive": true,
-  "reminderSettings": {...},
-  "createdAt": "2025-01-01T00:00:00.000Z"
+  "createdAt": "2025-09-11T10:23:43.598056Z",
+  "updatedAt": "2025-09-11T10:23:43.598056Z"
 }</pre>
                                         </div>
                                     </div>
                                 </div>
                                 
-                                <!-- Get Pinned Plans -->
+                                <!-- Get Active Pinned Plans -->
                                 <div class="endpoint-item">
                                     <div class="endpoint-header">
                                         <span class="method method-get">GET</span>
-                                        <span class="endpoint-path">/api/users/{userId}/pinned-plans</span>
-                                        <span class="endpoint-description">Get user's pinned plans</span>
-                                    </div>
-                                    <div class="endpoint-details">
-                                        <div class="request-section">
-                                            <h5>Headers:</h5>
-                                            <pre class="code-block">Authorization: Bearer {access_token}</pre>
-                                        </div>
-                                        <div class="response-section">
-                                            <h5>Response (200 OK):</h5>
-                                            <pre class="code-block">[
-  {
-    "id": "pinned-67890",
-    "userId": "user-12345",
-    "planType": "diet",
-    "planId": "plan-12345",
-    "planContent": "Plan content...",
-    "goals": ["weight_loss"],
-    "startDate": "2025-01-01",
-    "endDate": "2025-02-01",
-    "isActive": true,
-    "reminderSettings": {...},
-    "createdAt": "2025-01-01T00:00:00.000Z"
-  }
-]</pre>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- Get Active Plans -->
-                                <div class="endpoint-item">
-                                    <div class="endpoint-header">
-                                        <span class="method method-get">GET</span>
-                                        <span class="endpoint-path">/api/plans/active</span>
+                                        <span class="endpoint-path">/api/pinned-plans/my-active</span>
                                         <span class="endpoint-description">Get current user's active pinned plans</span>
                                     </div>
                                     <div class="endpoint-details">
@@ -4380,15 +4518,56 @@ Content-Disposition: attachment; filename="photo.jpg"</pre>
                                             <h5>Response (200 OK):</h5>
                                             <pre class="code-block">[
   {
-    "id": "pinned-67890",
+    "id": "d347c210-1686-4827-ac78-20dd9e922ebd",
+    "userId": "c9e2f45d-d60b-4b41-bcda-29cca98f9491",
     "planType": "diet",
-    "planContent": "Active diet plan...",
-    "goals": ["weight_loss"],
-    "startDate": "2025-01-01",
-    "endDate": "2025-02-01",
-    "isActive": true
+    "planId": null,
+    "planContent": {
+      "title": "Mediterranean Diet Plan",
+      "description": "A healthy Mediterranean-style diet plan"
+    },
+    "startDate": "2025-01-15T00:00:00Z",
+    "endDate": "2025-02-15T00:00:00Z",
+    "isActive": true,
+    "createdAt": "2025-09-11T10:23:43.598056Z",
+    "updatedAt": "2025-09-11T10:23:43.598056Z"
   }
 ]</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Get Pinned Plan by ID -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-get">GET</span>
+                                        <span class="endpoint-path">/api/pinned-plans/{id}</span>
+                                        <span class="endpoint-description">Get a specific pinned plan by ID</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {access_token}</pre>
+                                            <h5>Path Parameters:</h5>
+                                            <pre class="code-block">id: "d347c210-1686-4827-ac78-20dd9e922ebd"</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">{
+  "id": "d347c210-1686-4827-ac78-20dd9e922ebd",
+  "userId": "c9e2f45d-d60b-4b41-bcda-29cca98f9491",
+  "planType": "diet",
+  "planId": null,
+  "planContent": {
+    "title": "Mediterranean Diet Plan",
+    "description": "A healthy Mediterranean-style diet plan"
+  },
+  "startDate": "2025-01-15T00:00:00Z",
+  "endDate": "2025-02-15T00:00:00Z",
+  "isActive": true,
+  "createdAt": "2025-09-11T10:23:43.598056Z",
+  "updatedAt": "2025-09-11T10:23:43.598056Z"
+}</pre>
                                         </div>
                                     </div>
                                 </div>
@@ -4396,14 +4575,167 @@ Content-Disposition: attachment; filename="photo.jpg"</pre>
                                 <!-- Unpin Plan -->
                                 <div class="endpoint-item">
                                     <div class="endpoint-header">
-                                        <span class="method method-delete">DELETE</span>
-                                        <span class="endpoint-path">/api/plans/{pinnedPlanId}/unpin</span>
-                                        <span class="endpoint-description">Unpin a plan</span>
+                                        <span class="method method-patch">PATCH</span>
+                                        <span class="endpoint-path">/api/pinned-plans/{id}/unpin</span>
+                                        <span class="endpoint-description">Unpin/deactivate a plan</span>
                                     </div>
                                     <div class="endpoint-details">
                                         <div class="request-section">
                                             <h5>Headers:</h5>
                                             <pre class="code-block">Authorization: Bearer {access_token}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (204 No Content):</h5>
+                                            <pre class="code-block">No content returned</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Get Pinned Plans by User ID -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-get">GET</span>
+                                        <span class="endpoint-path">/api/pinned-plans/user/{userId}</span>
+                                        <span class="endpoint-description">Get pinned plans by user ID (admin or own plans only)</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {access_token}</pre>
+                                            <h5>Path Parameters:</h5>
+                                            <pre class="code-block">userId: "c9e2f45d-d60b-4b41-bcda-29cca98f9491"</pre>
+                                            <h5>Query Parameters:</h5>
+                                            <pre class="code-block">isActive: true | false (optional)</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">[
+  {
+    "id": "d347c210-1686-4827-ac78-20dd9e922ebd",
+    "userId": "c9e2f45d-d60b-4b41-bcda-29cca98f9491",
+    "planType": "diet",
+    "planContent": {
+      "title": "Mediterranean Diet Plan"
+    },
+    "isActive": true,
+    "createdAt": "2025-09-11T10:23:43.598056Z"
+  }
+]</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Update Pinned Plan -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-put">PUT</span>
+                                        <span class="endpoint-path">/api/pinned-plans/{id}</span>
+                                        <span class="endpoint-description">Update a pinned plan</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {access_token}
+Content-Type: application/json</pre>
+                                            <h5>Request Body (all fields optional):</h5>
+                                            <pre class="code-block">{
+  "planContent": {
+    "title": "Updated Mediterranean Diet",
+    "description": "Updated description",
+    "duration": "6 weeks"
+  },
+  "startDate": "2025-01-20",
+  "endDate": "2025-03-01",
+  "isActive": false
+}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">{
+  "id": "d347c210-1686-4827-ac78-20dd9e922ebd",
+  "userId": "c9e2f45d-d60b-4b41-bcda-29cca98f9491",
+  "planType": "diet",
+  "planContent": {
+    "title": "Updated Mediterranean Diet",
+    "description": "Updated description",
+    "duration": "6 weeks"
+  },
+  "startDate": "2025-01-20T00:00:00Z",
+  "endDate": "2025-03-01T00:00:00Z",
+  "isActive": false,
+  "updatedAt": "2025-09-11T10:30:00.000Z"
+}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Delete Pinned Plan (Soft Delete) -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-delete">DELETE</span>
+                                        <span class="endpoint-path">/api/pinned-plans/{id}</span>
+                                        <span class="endpoint-description">Delete a pinned plan (soft delete)</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {access_token}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (204 No Content):</h5>
+                                            <pre class="code-block">No content returned</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Get All Pinned Plans (Admin Only) -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-get">GET</span>
+                                        <span class="endpoint-path">/api/pinned-plans/admin</span>
+                                        <span class="endpoint-description">Get all pinned plans with pagination (Admin only)</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {admin_access_token}</pre>
+                                            <h5>Query Parameters:</h5>
+                                            <pre class="code-block">page: 1 (optional, default 1)
+pageSize: 50 (optional, default 50)</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">{
+  "data": [
+    {
+      "id": "d347c210-1686-4827-ac78-20dd9e922ebd",
+      "userId": "c9e2f45d-d60b-4b41-bcda-29cca98f9491",
+      "planType": "diet",
+      "planContent": {
+        "title": "Mediterranean Diet Plan"
+      },
+      "isActive": true,
+      "createdAt": "2025-09-11T10:23:43.598056Z"
+    }
+  ],
+  "page": 1,
+  "pageSize": 50
+}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Hard Delete Pinned Plan (Admin Only) -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-delete">DELETE</span>
+                                        <span class="endpoint-path">/api/pinned-plans/{id}/hard</span>
+                                        <span class="endpoint-description">Hard delete a pinned plan (Admin only)</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {admin_access_token}</pre>
                                         </div>
                                         <div class="response-section">
                                             <h5>Response (204 No Content):</h5>
@@ -4598,6 +4930,7 @@ offset: 0 (optional, default 0)</pre>
                 users: 'Users',
                 'diet-plans': 'Diet Plans',
                 documents: 'Documents',
+                'pinned-plans': 'Pinned Plans',
                 documentation: 'Documentation',
                 'api-keys': 'API Keys',
                 settings: 'Settings'
@@ -4625,6 +4958,10 @@ offset: 0 (optional, default 0)</pre>
                 // Load documents if on documents tab
                 else if (tab === 'documents') {
                     loadDocuments();
+                }
+                // Load pinned plans if on pinned-plans tab
+                else if (tab === 'pinned-plans') {
+                    loadPinnedPlans();
                 }
                 // Load users if on users tab
                 else if (tab === 'users') {
@@ -4742,6 +5079,139 @@ offset: 0 (optional, default 0)</pre>
         function openConversation(conversationId) {
             // Redirect to messages page with conversation ID
             window.location.href = `messages.html?conversationId=${conversationId}`;
+        }
+
+        async function loadPinnedPlans() {
+            const pinnedPlansGrid = document.getElementById('pinnedPlansGrid');
+            if (!pinnedPlansGrid) return;
+            
+            // Show loading state
+            pinnedPlansGrid.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">⏳</div>
+                    <h3>Loading Pinned Plans...</h3>
+                    <p>Please wait while we fetch your pinned plans.</p>
+                </div>
+            `;
+            
+            const token = localStorage.getItem('authToken');
+            
+            try {
+                // Fetch active pinned plans from the API
+                const response = await fetch(`${API_URL}/api/pinned-plans/my-active`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const pinnedPlans = await response.json();
+                
+                if (pinnedPlans.length === 0) {
+                    pinnedPlansGrid.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">📌</div>
+                            <h3>No Pinned Plans Yet</h3>
+                            <p>Pin your favorite meal plans to access them quickly from here.</p>
+                            <button class="btn-primary" onclick="showTab('conversations')">
+                                Browse Plans
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    pinnedPlansGrid.innerHTML = pinnedPlans.map(plan => {
+                        const startDate = plan.startDate ? new Date(plan.startDate).toLocaleDateString() : 'Not set';
+                        const endDate = plan.endDate ? new Date(plan.endDate).toLocaleDateString() : 'Ongoing';
+                        const createdDate = new Date(plan.createdAt).toLocaleDateString();
+                        
+                        // Extract title and description from plan content if available
+                        const title = plan.planContent?.title || `${plan.planType.charAt(0).toUpperCase() + plan.planType.slice(1)} Plan`;
+                        const description = plan.planContent?.description || `A personalized ${plan.planType} plan tailored to your needs.`;
+                        
+                        return `
+                            <div class="plan-card">
+                                <div class="plan-card-header">
+                                    <div class="plan-title">${title}</div>
+                                    <button class="btn-icon" onclick="unpinPlan('${plan.id}')" title="Unpin this plan">
+                                        <i class="fas fa-thumbtack"></i>
+                                    </button>
+                                </div>
+                                <div class="plan-meta">
+                                    <span><i class="fas fa-tag"></i> ${plan.planType.charAt(0).toUpperCase() + plan.planType.slice(1)}</span>
+                                    <span><i class="fas fa-calendar-alt"></i> ${startDate} - ${endDate}</span>
+                                    <span><i class="fas fa-calendar"></i> Pinned ${createdDate}</span>
+                                </div>
+                                <div class="plan-description">
+                                    ${description}
+                                </div>
+                                <div class="plan-actions">
+                                    <button class="btn-primary" onclick="viewPlan('${plan.id}')">
+                                        View Plan
+                                    </button>
+                                    <button class="btn-secondary" onclick="copyPlan('${plan.id}')">
+                                        <i class="fas fa-copy"></i> Copy
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+                
+            } catch (error) {
+                console.error('Error loading pinned plans:', error);
+                pinnedPlansGrid.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">⚠️</div>
+                        <h3>Error Loading Pinned Plans</h3>
+                        <p>There was an error loading your pinned plans: ${error.message}</p>
+                        <button class="btn-primary" onclick="loadPinnedPlans()">
+                            Retry
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        async function unpinPlan(planId) {
+            try {
+                const token = localStorage.getItem('authToken');
+                const response = await fetch(`${API_URL}/api/pinned-plans/${planId}/unpin`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    // Reload the pinned plans
+                    loadPinnedPlans();
+                } else {
+                    throw new Error(`Failed to unpin plan: ${response.statusText}`);
+                }
+            } catch (error) {
+                console.error('Error unpinning plan:', error);
+                alert('Failed to unpin plan. Please try again.');
+            }
+        }
+
+        function viewPlan(planId) {
+            // This would navigate to a detailed view of the plan
+            console.log('Viewing plan:', planId);
+            // For now, just show an alert
+            alert('View plan functionality coming soon!');
+        }
+
+        function copyPlan(planId) {
+            // This would create a copy of the plan
+            console.log('Copying plan:', planId);
+            // For now, just show an alert
+            alert('Copy plan functionality coming soon!');
         }
 
         async function logout() {

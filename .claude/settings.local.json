@@ -65,7 +65,9 @@
       "Bash(git commit:*)",
       "Bash(gcloud:*)",
       "Read(//var/folders/sb/281s399j7zzbg2rbr1bh_hp00000gn/T/TemporaryItems/NSIRD_screencaptureui_ezGfxu/**)",
-      "Read(//var/folders/sb/281s399j7zzbg2rbr1bh_hp00000gn/T/TemporaryItems/NSIRD_screencaptureui_pQ92iN/**)"
+      "Read(//var/folders/sb/281s399j7zzbg2rbr1bh_hp00000gn/T/TemporaryItems/NSIRD_screencaptureui_pQ92iN/**)",
+      "Bash(JWT_TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiJjOWUyZjQ1ZC1kNjBiLTRiNDEtYmNkYS0yOWNjYTk4Zjk0OTEiLCJlbWFpbCI6Im5hc2h3YUBudXRyaXNoYS1hcHAuY29tIiwicm9sZSI6ImFkbWluIiwic3ViIjoiYzllMmY0NWQtZDYwYi00YjQxLWJjZGEtMjljY2E5OGY5NDkxIiwianRpIjoiYjU5YjkyMzgtYTBlMi00MTllLTk0NzMtNGQ0Y2JjOTZiNmFlIiwiaWF0IjoxNzU3NTg1NTU1LCJuYmYiOjE3NTc1ODU1NTUsImV4cCI6MTc1NzU4OTE1NSwiaXNzIjoiTnV0cmlzaGFBSSJ9.EAhvddNUEXTrxNWDPLr3b04l9TM7uLr1qGlmMpZsTic\")",
+      "Bash(__NEW_LINE__ echo \"✅ Fresh JWT Token set for testing\")"
     ],
     "deny": []
   }

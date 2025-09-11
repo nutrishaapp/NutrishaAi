@@ -35,10 +35,19 @@ namespace NutrishaAI.API.Models.Requests
         
         public Dictionary<string, object>? PlanContent { get; set; }
         
-        public string[]? Goals { get; set; }
+        public DateTime? StartDate { get; set; }
+        
+        public DateTime? EndDate { get; set; }
+    }
+    
+    public class UpdatePinnedPlanRequest
+    {
+        public Dictionary<string, object>? PlanContent { get; set; }
+        
+        public DateTime? StartDate { get; set; }
         
         public DateTime? EndDate { get; set; }
         
-        public Dictionary<string, object>? ReminderSettings { get; set; }
+        public bool? IsActive { get; set; }
     }
 }

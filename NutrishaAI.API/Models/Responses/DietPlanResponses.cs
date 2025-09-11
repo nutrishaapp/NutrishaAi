@@ -22,11 +22,9 @@ namespace NutrishaAI.API.Models.Responses
         public string PlanType { get; set; } = "diet";
         public Guid? PlanId { get; set; }
         public Dictionary<string, object>? PlanContent { get; set; }
-        public string[]? Goals { get; set; }
-        public DateTime StartDate { get; set; }
+        public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
         public bool IsActive { get; set; }
-        public Dictionary<string, object>? ReminderSettings { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }

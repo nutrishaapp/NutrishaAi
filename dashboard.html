@@ -2200,6 +2200,277 @@
                 font-size: 13px;
             }
         }
+
+        /* Documentation Styles */
+        .documentation-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .documentation-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+        }
+
+        .documentation-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .documentation-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin: 0 0 30px 0;
+        }
+
+        .api-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .stat-item {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .stat-number {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 5px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .api-sections {
+            display: grid;
+            gap: 30px;
+            position: relative;
+        }
+
+        .api-section {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            padding: 30px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-title i {
+            color: var(--primary-color);
+        }
+
+        .section-description {
+            color: var(--text-light);
+            margin-bottom: 25px;
+            font-size: 1.05rem;
+        }
+
+        .endpoints-list {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .endpoint-item {
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .endpoint-item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary-color);
+        }
+
+        .endpoint-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #e1e5e9;
+        }
+
+        .method {
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: white;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .method-get {
+            background: #28a745;
+        }
+
+        .method-post {
+            background: #007bff;
+        }
+
+        .method-put {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .method-delete {
+            background: #dc3545;
+        }
+
+        .endpoint-path {
+            font-family: 'Fira Code', monospace;
+            font-weight: 500;
+            color: #495057;
+            font-size: 1rem;
+        }
+
+        .endpoint-description {
+            color: var(--text-light);
+            font-size: 0.95rem;
+            margin-left: auto;
+        }
+
+        .endpoint-details {
+            padding: 20px;
+            display: grid;
+            gap: 20px;
+        }
+
+        .request-section,
+        .response-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .request-section h5,
+        .response-section h5 {
+            margin: 0 0 10px 0;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            overflow-x: auto;
+            margin: 0;
+            white-space: pre-wrap;
+        }
+
+        .api-nav-sidebar {
+            position: sticky;
+            top: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+
+        .api-nav-sidebar h4 {
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            color: var(--text-color);
+        }
+
+        .nav-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .nav-list li {
+            margin-bottom: 8px;
+        }
+
+        .nav-list a {
+            color: var(--text-light);
+            text-decoration: none;
+            display: block;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-list a:hover {
+            background: var(--primary-light);
+            color: var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            .documentation-container {
+                padding: 15px;
+            }
+
+            .documentation-title {
+                font-size: 2rem;
+            }
+
+            .section-title {
+                font-size: 1.5rem;
+            }
+
+            .endpoint-header {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .endpoint-description {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .api-nav-sidebar {
+                position: static;
+            }
+        }
     </style>
 </head>
 <body>
@@ -2243,9 +2514,9 @@
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="#" class="nav-link" data-tab="api-keys">
-                        <i class="nav-icon fas fa-key"></i>
-                        <span class="nav-text">API Keys</span>
+                    <a href="#" class="nav-link" data-tab="documentation">
+                        <i class="nav-icon fas fa-book"></i>
+                        <span class="nav-text">Documentation</span>
                     </a>
                 </div>
             </nav>
@@ -2874,6 +3145,1445 @@
                         <!-- Documents will be loaded here -->
                     </div>
                 </div>
+            `,
+            documentation: `
+                <div class="documentation-container">
+                    <div class="documentation-header">
+                        <h2 class="documentation-title">API Documentation</h2>
+                        <p class="documentation-subtitle">Complete reference for all NutrishaAI API endpoints</p>
+                        
+                        <!-- API Statistics -->
+                        <div class="api-stats">
+                            <div class="stat-item">
+                                <div class="stat-number">65+</div>
+                                <div class="stat-label">API Endpoints</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">11</div>
+                                <div class="stat-label">API Categories</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="api-sections">
+                        <!-- Authentication -->
+                        <div class="api-section" id="auth-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-shield-alt"></i>
+                                Authentication
+                            </h3>
+                            <div class="section-description">
+                                Endpoints for user authentication and session management.
+                            </div>
+                            
+                            <div class="endpoints-list">
+                                <!-- Register -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-post">POST</span>
+                                        <span class="endpoint-path">/api/auth/register</span>
+                                        <span class="endpoint-description">Register a new user account</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Request Body:</h5>
+                                            <pre class="code-block">{
+  "email": "user@example.com",
+  "password": "securePassword123",
+  "fullName": "John Doe",
+  "role": "patient",
+  "phoneNumber": "+1234567890",
+  "dateOfBirth": "1990-01-01",
+  "gender": "male"
+}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "refresh_token_here",
+  "expiresIn": 3600,
+  "user": {
+    "id": "c9e2f45d-d60b-4b41-bcda-29cca98f9491",
+    "email": "user@example.com",
+    "fullName": "John Doe",
+    "role": "patient"
+  }
+}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Login -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-post">POST</span>
+                                        <span class="endpoint-path">/api/auth/login</span>
+                                        <span class="endpoint-description">Authenticate user and get access token</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Request Body:</h5>
+                                            <pre class="code-block">{
+  "email": "user@example.com",
+  "password": "securePassword123"
+}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "refresh_token_here",
+  "expiresIn": 3600,
+  "user": {
+    "id": "c9e2f45d-d60b-4b41-bcda-29cca98f9491",
+    "email": "user@example.com",
+    "fullName": "John Doe",
+    "role": "patient"
+  }
+}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Refresh Token -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-post">POST</span>
+                                        <span class="endpoint-path">/api/auth/refresh</span>
+                                        <span class="endpoint-description">Refresh access token using refresh token</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Request Body:</h5>
+                                            <pre class="code-block">{
+  "refreshToken": "refresh_token_here"
+}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "new_refresh_token",
+  "expiresIn": 3600,
+  "user": {
+    "id": "c9e2f45d-d60b-4b41-bcda-29cca98f9491",
+    "email": "user@example.com",
+    "fullName": "John Doe",
+    "role": "patient"
+  }
+}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Logout -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-post">POST</span>
+                                        <span class="endpoint-path">/api/auth/logout</span>
+                                        <span class="endpoint-description">Log out the current user</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {access_token}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">{
+  "message": "Logged out successfully"
+}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Chat -->
+                        <div class="api-section" id="chat-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-comments"></i>
+                                Chat & Conversations
+                            </h3>
+                            <div class="section-description">
+                                Endpoints for managing conversations and messages with Risha AI.
+                            </div>
+                            
+                            <div class="endpoints-list">
+                                <!-- Create Conversation -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-post">POST</span>
+                                        <span class="endpoint-path">/api/chat/conversations</span>
+                                        <span class="endpoint-description">Create a new conversation</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {access_token}</pre>
+                                            <h5>Request Body:</h5>
+                                            <pre class="code-block">{
+  "title": "My Health Journey",
+  "mode": "nutrition"
+}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">{
+  "id": "12345678-1234-1234-1234-123456789012",
+  "title": "My Health Journey",
+  "mode": "nutrition",
+  "createdAt": "2025-01-01T00:00:00.000Z",
+  "userId": "c9e2f45d-d60b-4b41-bcda-29cca98f9491"
+}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Send Message -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-post">POST</span>
+                                        <span class="endpoint-path">/api/chat/send</span>
+                                        <span class="endpoint-description">Send a message in a conversation</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {access_token}</pre>
+                                            <h5>Request Body:</h5>
+                                            <pre class="code-block">{
+  "conversationId": "12345678-1234-1234-1234-123456789012",
+  "content": "I want to create a meal plan for weight loss",
+  "attachments": []
+}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">{
+  "userMessage": {
+    "id": "msg-12345",
+    "content": "I want to create a meal plan for weight loss",
+    "role": "user",
+    "timestamp": "2025-01-01T00:00:00.000Z"
+  },
+  "aiMessage": {
+    "id": "msg-67890",
+    "content": "I'd be happy to help you create a personalized meal plan for weight loss...",
+    "role": "assistant",
+    "timestamp": "2025-01-01T00:00:05.000Z"
+  }
+}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Get Conversations -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-get">GET</span>
+                                        <span class="endpoint-path">/api/chat/conversations</span>
+                                        <span class="endpoint-description">Get all user conversations</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {access_token}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">[
+  {
+    "id": "12345678-1234-1234-1234-123456789012",
+    "title": "My Health Journey",
+    "mode": "nutrition",
+    "createdAt": "2025-01-01T00:00:00.000Z",
+    "updatedAt": "2025-01-01T12:00:00.000Z",
+    "messageCount": 15
+  }
+]</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Update Conversation Mode -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-put">PUT</span>
+                                        <span class="endpoint-path">/api/chat/conversations/{conversationId}/mode</span>
+                                        <span class="endpoint-description">Update conversation mode</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {access_token}</pre>
+                                            <h5>Request Body:</h5>
+                                            <pre class="code-block">{
+  "mode": "fitness"
+}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">{
+  "message": "Conversation mode updated successfully",
+  "mode": "fitness"
+}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Get Messages -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-get">GET</span>
+                                        <span class="endpoint-path">/api/chat/messages/{conversationId}</span>
+                                        <span class="endpoint-description">Get messages for a conversation</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {access_token}</pre>
+                                            <h5>Query Parameters:</h5>
+                                            <pre class="code-block">limit: 50 (optional)
+offset: 0 (optional)</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">[
+  {
+    "id": "msg-12345",
+    "content": "Hello Risha!",
+    "role": "user",
+    "timestamp": "2025-01-01T00:00:00.000Z",
+    "conversationId": "12345678-1234-1234-1234-123456789012"
+  }
+]</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Send Multimedia Message -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-post">POST</span>
+                                        <span class="endpoint-path">/api/chat/send-multimedia</span>
+                                        <span class="endpoint-description">Send a multimedia message with attachments</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {access_token}</pre>
+                                            <h5>Request Body:</h5>
+                                            <pre class="code-block">{
+  "conversationId": "12345678-1234-1234-1234-123456789012",
+  "content": "Here's my meal photo",
+  "blobName": "user-uploads/meal-photo-123.jpg",
+  "attachmentType": "image"
+}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">{
+  "id": "msg-67890",
+  "content": "Here's my meal photo",
+  "role": "user",
+  "timestamp": "2025-01-01T00:00:00.000Z",
+  "attachments": ["user-uploads/meal-photo-123.jpg"]
+}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Process Multimedia -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-post">POST</span>
+                                        <span class="endpoint-path">/api/chat/process-multimedia</span>
+                                        <span class="endpoint-description">Process multimedia content with AI</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {access_token}</pre>
+                                            <h5>Request Body:</h5>
+                                            <pre class="code-block">{
+  "messageId": "msg-67890",
+  "processingType": "nutrition_analysis"
+}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">{
+  "processedData": {
+    "calories": 450,
+    "nutrients": {
+      "protein": "25g",
+      "carbs": "40g",
+      "fat": "15g"
+    }
+  },
+  "aiResponse": "I can see this is a healthy balanced meal..."
+}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Direct AI Chat -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-post">POST</span>
+                                        <span class="endpoint-path">/api/chat/ai-chat</span>
+                                        <span class="endpoint-description">Direct AI chat without conversation context</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {access_token}</pre>
+                                            <h5>Request Body:</h5>
+                                            <pre class="code-block">{
+  "message": "What are some healthy snack options?",
+  "context": "fitness"
+}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">{
+  "aiResponse": "Here are some great healthy snack options...",
+  "processedAt": "2025-01-01T00:00:00.000Z"
+}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Join Channel -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-post">POST</span>
+                                        <span class="endpoint-path">/api/chat/join-channel/{conversationId}</span>
+                                        <span class="endpoint-description">Join real-time chat channel</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {access_token}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">{
+  "message": "Joined chat channel successfully"
+}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Leave Channel -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-post">POST</span>
+                                        <span class="endpoint-path">/api/chat/leave-channel/{conversationId}</span>
+                                        <span class="endpoint-description">Leave real-time chat channel</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">{
+  "message": "Left chat channel successfully"
+}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Documents -->
+                        <div class="api-section" id="documents-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-file-alt"></i>
+                                Document Management
+                            </h3>
+                            <div class="section-description">
+                                Endpoints for uploading and managing documents like meal plans, medical reports.
+                            </div>
+                            
+                            <div class="endpoints-list">
+                                <!-- Upload Document -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-post">POST</span>
+                                        <span class="endpoint-path">/api/document/upload</span>
+                                        <span class="endpoint-description">Upload a document (PDF, Word, or Image) - 10MB limit</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {access_token}
+Content-Type: multipart/form-data</pre>
+                                            <h5>Form Data:</h5>
+                                            <pre class="code-block">name: "My Workout Plan"
+description: "Weekly workout routine"
+documentType: "workout_plan"
+tags: "fitness,weekly"
+isPublic: false
+file: [binary file data]</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">{
+  "id": "doc-12345",
+  "name": "My Workout Plan",
+  "status": "processing",
+  "message": "Document uploaded successfully. Content extraction is in progress.",
+  "createdAt": "2025-01-01T00:00:00.000Z"
+}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Get Document -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-get">GET</span>
+                                        <span class="endpoint-path">/api/document/{id}</span>
+                                        <span class="endpoint-description">Get a specific document by ID</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {access_token}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">{
+  "id": "doc-12345",
+  "name": "My Workout Plan",
+  "description": "Weekly workout routine",
+  "documentType": "workout_plan",
+  "status": "completed",
+  "originalFilename": "workout.pdf",
+  "fileSize": 1048576,
+  "mimeType": "application/pdf",
+  "content": "Extracted text content...",
+  "tags": ["fitness", "weekly"],
+  "isPublic": false,
+  "createdAt": "2025-01-01T00:00:00.000Z",
+  "updatedAt": "2025-01-01T00:05:00.000Z",
+  "processedAt": "2025-01-01T00:02:00.000Z"
+}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- List Documents -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-get">GET</span>
+                                        <span class="endpoint-path">/api/document/list</span>
+                                        <span class="endpoint-description">Get all user documents with optional filtering</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {access_token}</pre>
+                                            <h5>Query Parameters:</h5>
+                                            <pre class="code-block">documentType: "workout_plan" (optional)
+status: "completed" (optional)
+offset: 0 (optional)
+limit: 50 (optional)</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">{
+  "documents": [
+    {
+      "id": "doc-12345",
+      "name": "My Workout Plan",
+      "description": "Weekly workout routine",
+      "documentType": "workout_plan",
+      "fileSize": 1048576,
+      "status": "completed",
+      "tags": ["fitness", "weekly"],
+      "isPublic": false,
+      "createdAt": "2025-01-01T00:00:00.000Z"
+    }
+  ],
+  "totalCount": 1,
+  "offset": 0,
+  "limit": 50
+}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Update Document -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-put">PUT</span>
+                                        <span class="endpoint-path">/api/document/{id}</span>
+                                        <span class="endpoint-description">Update document metadata</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {access_token}</pre>
+                                            <h5>Request Body:</h5>
+                                            <pre class="code-block">{
+  "name": "Updated Workout Plan",
+  "description": "Updated weekly routine",
+  "tags": ["fitness", "advanced"],
+  "isPublic": true
+}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">{
+  "id": "doc-12345",
+  "name": "Updated Workout Plan",
+  "description": "Updated weekly routine",
+  "tags": ["fitness", "advanced"],
+  "isPublic": true,
+  "updatedAt": "2025-01-01T12:00:00.000Z"
+}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Delete Document -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-delete">DELETE</span>
+                                        <span class="endpoint-path">/api/document/{id}</span>
+                                        <span class="endpoint-description">Delete a document</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {access_token}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (204 No Content):</h5>
+                                            <pre class="code-block">No content returned</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Download Document -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-get">GET</span>
+                                        <span class="endpoint-path">/api/document/{id}/download</span>
+                                        <span class="endpoint-description">Download the original document file</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {access_token}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">Binary file download with appropriate headers:
+Content-Type: application/pdf
+Content-Disposition: attachment; filename="workout.pdf"</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Reprocess Document -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-post">POST</span>
+                                        <span class="endpoint-path">/api/document/{id}/reprocess</span>
+                                        <span class="endpoint-description">Reprocess document content extraction</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {access_token}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">{
+  "id": "doc-12345",
+  "status": "processing",
+  "processedAt": "2025-01-01T12:00:00.000Z",
+  "hasContent": true,
+  "tags": ["fitness", "workout", "weekly"]
+}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Get Document Status -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-get">GET</span>
+                                        <span class="endpoint-path">/api/document/{id}/status</span>
+                                        <span class="endpoint-description">Get document processing status</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {access_token}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">{
+  "id": "doc-12345",
+  "status": "completed",
+  "processedAt": "2025-01-01T00:02:00.000Z",
+  "hasContent": true,
+  "tags": ["fitness", "workout"]
+}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- API Keys -->
+                        <div class="api-section" id="api-keys-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-key"></i>
+                                API Key Management
+                            </h3>
+                            <div class="section-description">
+                                Endpoints for managing API keys for programmatic access.
+                            </div>
+                            
+                            <div class="endpoints-list">
+                                <!-- Generate API Key -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-post">POST</span>
+                                        <span class="endpoint-path">/api/apikeys/generate</span>
+                                        <span class="endpoint-description">Generate a new API key</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {access_token}</pre>
+                                            <h5>Request Body:</h5>
+                                            <pre class="code-block">{
+  "name": "My API Key",
+  "permissions": ["read", "write"]
+}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">{
+  "apiKey": "nai_1234567890abcdef...",
+  "apiKeyId": "key-12345",
+  "name": "My API Key",
+  "warning": "Save this key securely. It won't be shown again."
+}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Get API Keys -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-get">GET</span>
+                                        <span class="endpoint-path">/api/apikeys</span>
+                                        <span class="endpoint-description">Get all user API keys (metadata only)</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {access_token}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">[
+  {
+    "id": "key-12345",
+    "name": "My API Key",
+    "prefix": "nai_1234...",
+    "lastUsed": "2025-01-01T12:00:00.000Z",
+    "created": "2025-01-01T00:00:00.000Z",
+    "isActive": true
+  }
+]</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Revoke API Key -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-delete">DELETE</span>
+                                        <span class="endpoint-path">/api/apikeys/{keyId}</span>
+                                        <span class="endpoint-description">Revoke an API key</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {access_token}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (204 No Content):</h5>
+                                            <pre class="code-block">No content returned</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Media Files -->
+                        <div class="api-section" id="media-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-images"></i>
+                                Media File Management
+                            </h3>
+                            <div class="section-description">
+                                Endpoints for uploading, downloading, and managing media files (images, audio, video).
+                            </div>
+                            
+                            <div class="endpoints-list">
+                                <!-- Upload Media File -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-post">POST</span>
+                                        <span class="endpoint-path">/api/media/upload</span>
+                                        <span class="endpoint-description">Upload a media file (image, audio, video, document)</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {access_token}
+Content-Type: multipart/form-data</pre>
+                                            <h5>Form Data:</h5>
+                                            <pre class="code-block">file: [binary file data]
+fileType: "image" | "voice" | "document" | "video"</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">{
+  "blobName": "user-uploads/123456789-photo.jpg",
+  "originalFileName": "photo.jpg",
+  "size": 1048576,
+  "contentType": "image/jpeg",
+  "fileType": "image",
+  "url": "https://storage.azure.com/nutrishiai/user-uploads/123456789-photo.jpg",
+  "uploadedAt": "2025-01-01T00:00:00.000Z"
+}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Download Media File -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-get">GET</span>
+                                        <span class="endpoint-path">/api/media/download/{blobName}</span>
+                                        <span class="endpoint-description">Download a media file</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {access_token}</pre>
+                                            <h5>Query Parameters:</h5>
+                                            <pre class="code-block">container: "user-uploads" (optional, default)</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">Binary file download with appropriate headers:
+Content-Type: image/jpeg
+Content-Disposition: attachment; filename="photo.jpg"</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Delete Media File -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-delete">DELETE</span>
+                                        <span class="endpoint-path">/api/media/{blobName}</span>
+                                        <span class="endpoint-description">Delete a media file</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {access_token}</pre>
+                                            <h5>Query Parameters:</h5>
+                                            <pre class="code-block">container: "user-uploads" (optional, default)</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">{
+  "message": "File deleted successfully"
+}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Get Message Attachments -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-get">GET</span>
+                                        <span class="endpoint-path">/api/media/{messageId}/attachments</span>
+                                        <span class="endpoint-description">Get all attachments for a message</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {access_token}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">[
+  {
+    "id": "att-12345",
+    "messageId": "msg-67890",
+    "fileUrl": "https://storage.azure.com/nutrishiai/user-uploads/photo.jpg",
+    "fileType": "image",
+    "createdAt": "2025-01-01T00:00:00.000Z"
+  }
+]</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Configuration -->
+                        <div class="api-section" id="config-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-cogs"></i>
+                                Configuration (Admin Only)
+                            </h3>
+                            <div class="section-description">
+                                Endpoints for managing application configuration. Requires admin role.
+                            </div>
+                            
+                            <div class="endpoints-list">
+                                <!-- Get All Configs -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-get">GET</span>
+                                        <span class="endpoint-path">/api/config</span>
+                                        <span class="endpoint-description">Get all configuration keys</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {admin_access_token}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">[
+  {
+    "key": "risha_prompt",
+    "value": "You are Risha, a helpful AI nutritionist...",
+    "createdAt": "2025-01-01T00:00:00.000Z",
+    "updatedAt": "2025-01-01T12:00:00.000Z",
+    "updatedBy": "admin-user-id"
+  }
+]</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Update Config -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-put">PUT</span>
+                                        <span class="endpoint-path">/api/config/{key}</span>
+                                        <span class="endpoint-description">Update a configuration value</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {admin_access_token}</pre>
+                                            <h5>Request Body:</h5>
+                                            <pre class="code-block">{
+  "value": "Updated configuration value"
+}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">{
+  "message": "Config updated successfully",
+  "key": "risha_prompt",
+  "value": "Updated configuration value"
+}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Diet Plans -->
+                        <div class="api-section" id="dietplans-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-utensils"></i>
+                                Diet Plans (Nutritionist/Admin Only)
+                            </h3>
+                            <div class="section-description">
+                                Endpoints for managing diet plans. Requires nutritionist or admin role.
+                            </div>
+                            
+                            <div class="endpoints-list">
+                                <!-- Get Diet Plans -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-get">GET</span>
+                                        <span class="endpoint-path">/api/dietplans</span>
+                                        <span class="endpoint-description">Get all diet plans</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {access_token}</pre>
+                                            <h5>Query Parameters:</h5>
+                                            <pre class="code-block">status: "active" | "completed" | "draft" (optional)</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">[
+  {
+    "id": "plan-12345",
+    "patientId": "user-67890",
+    "nutritionistId": "nutri-11111",
+    "title": "Weight Loss Plan",
+    "description": "Personalized weight loss diet plan",
+    "planData": {...},
+    "status": "active",
+    "createdAt": "2025-01-01T00:00:00.000Z",
+    "updatedAt": "2025-01-01T12:00:00.000Z"
+  }
+]</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Get Diet Plan -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-get">GET</span>
+                                        <span class="endpoint-path">/api/dietplans/{id}</span>
+                                        <span class="endpoint-description">Get a specific diet plan</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {access_token}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">{
+  "id": "plan-12345",
+  "patientId": "user-67890",
+  "nutritionistId": "nutri-11111",
+  "title": "Weight Loss Plan",
+  "description": "Personalized weight loss diet plan",
+  "planData": {
+    "meals": [...],
+    "guidelines": "...",
+    "restrictions": [...]
+  },
+  "status": "active",
+  "createdAt": "2025-01-01T00:00:00.000Z",
+  "updatedAt": "2025-01-01T12:00:00.000Z"
+}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Create Diet Plan -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-post">POST</span>
+                                        <span class="endpoint-path">/api/dietplans</span>
+                                        <span class="endpoint-description">Create a new diet plan</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {nutritionist_access_token}</pre>
+                                            <h5>Request Body:</h5>
+                                            <pre class="code-block">{
+  "patientId": "user-67890",
+  "title": "Weight Loss Plan",
+  "description": "Personalized weight loss diet plan",
+  "planData": {
+    "meals": [...],
+    "guidelines": "...",
+    "restrictions": [...]
+  },
+  "status": "active"
+}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (201 Created):</h5>
+                                            <pre class="code-block">{
+  "id": "plan-12345",
+  "patientId": "user-67890",
+  "nutritionistId": "nutri-11111",
+  "title": "Weight Loss Plan",
+  "description": "Personalized weight loss diet plan",
+  "planData": {...},
+  "status": "active",
+  "createdAt": "2025-01-01T00:00:00.000Z",
+  "updatedAt": "2025-01-01T00:00:00.000Z"
+}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Update Diet Plan -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-put">PUT</span>
+                                        <span class="endpoint-path">/api/dietplans/{id}</span>
+                                        <span class="endpoint-description">Update an existing diet plan</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {nutritionist_access_token}</pre>
+                                            <h5>Request Body:</h5>
+                                            <pre class="code-block">{
+  "title": "Updated Weight Loss Plan",
+  "description": "Updated personalized plan",
+  "planData": {...},
+  "status": "completed"
+}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (204 No Content):</h5>
+                                            <pre class="code-block">No content returned</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Delete Diet Plan -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-delete">DELETE</span>
+                                        <span class="endpoint-path">/api/dietplans/{id}</span>
+                                        <span class="endpoint-description">Delete a diet plan</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {nutritionist_access_token}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (204 No Content):</h5>
+                                            <pre class="code-block">No content returned</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Pinned Plans -->
+                        <div class="api-section" id="plans-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-thumbtack"></i>
+                                Pinned Plans
+                            </h3>
+                            <div class="section-description">
+                                Endpoints for managing user's pinned plans (active diet/workout plans).
+                            </div>
+                            
+                            <div class="endpoints-list">
+                                <!-- Pin Plan -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-post">POST</span>
+                                        <span class="endpoint-path">/api/plans/pin</span>
+                                        <span class="endpoint-description">Pin a plan for easy access</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {access_token}</pre>
+                                            <h5>Request Body:</h5>
+                                            <pre class="code-block">{
+  "planType": "diet" | "workout" | "meal",
+  "planId": "plan-12345",
+  "planContent": "Detailed plan content...",
+  "goals": ["weight_loss", "muscle_gain"],
+  "endDate": "2025-02-01",
+  "reminderSettings": {
+    "enabled": true,
+    "frequency": "daily"
+  }
+}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">{
+  "id": "pinned-67890",
+  "userId": "user-12345",
+  "planType": "diet",
+  "planId": "plan-12345",
+  "planContent": "Detailed plan content...",
+  "goals": ["weight_loss"],
+  "startDate": "2025-01-01",
+  "endDate": "2025-02-01",
+  "isActive": true,
+  "reminderSettings": {...},
+  "createdAt": "2025-01-01T00:00:00.000Z"
+}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Get Pinned Plans -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-get">GET</span>
+                                        <span class="endpoint-path">/api/users/{userId}/pinned-plans</span>
+                                        <span class="endpoint-description">Get user's pinned plans</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {access_token}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">[
+  {
+    "id": "pinned-67890",
+    "userId": "user-12345",
+    "planType": "diet",
+    "planId": "plan-12345",
+    "planContent": "Plan content...",
+    "goals": ["weight_loss"],
+    "startDate": "2025-01-01",
+    "endDate": "2025-02-01",
+    "isActive": true,
+    "reminderSettings": {...},
+    "createdAt": "2025-01-01T00:00:00.000Z"
+  }
+]</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Get Active Plans -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-get">GET</span>
+                                        <span class="endpoint-path">/api/plans/active</span>
+                                        <span class="endpoint-description">Get current user's active pinned plans</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {access_token}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">[
+  {
+    "id": "pinned-67890",
+    "planType": "diet",
+    "planContent": "Active diet plan...",
+    "goals": ["weight_loss"],
+    "startDate": "2025-01-01",
+    "endDate": "2025-02-01",
+    "isActive": true
+  }
+]</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Unpin Plan -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-delete">DELETE</span>
+                                        <span class="endpoint-path">/api/plans/{pinnedPlanId}/unpin</span>
+                                        <span class="endpoint-description">Unpin a plan</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {access_token}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (204 No Content):</h5>
+                                            <pre class="code-block">No content returned</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Users -->
+                        <div class="api-section" id="users-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-users"></i>
+                                User Management (Admin Only)
+                            </h3>
+                            <div class="section-description">
+                                Endpoints for managing users. Requires admin role.
+                            </div>
+                            
+                            <div class="endpoints-list">
+                                <!-- Get Users -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-get">GET</span>
+                                        <span class="endpoint-path">/api/users</span>
+                                        <span class="endpoint-description">Get all users with optional search</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {admin_access_token}</pre>
+                                            <h5>Query Parameters:</h5>
+                                            <pre class="code-block">search: "john@example.com" (optional)
+limit: 50 (optional, default 50)
+offset: 0 (optional, default 0)</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">[
+  {
+    "id": "c9e2f45d-d60b-4b41-bcda-29cca98f9491",
+    "email": "john@example.com",
+    "fullName": "John Doe",
+    "role": "patient",
+    "phoneNumber": "+1234567890",
+    "dateOfBirth": "1990-01-01",
+    "gender": "male",
+    "createdAt": "2025-01-01T00:00:00.000Z",
+    "updatedAt": "2025-01-01T12:00:00.000Z"
+  }
+]</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Get User -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-get">GET</span>
+                                        <span class="endpoint-path">/api/users/{userId}</span>
+                                        <span class="endpoint-description">Get a specific user by ID</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {admin_access_token}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">{
+  "id": "c9e2f45d-d60b-4b41-bcda-29cca98f9491",
+  "email": "john@example.com",
+  "fullName": "John Doe",
+  "role": "patient",
+  "phoneNumber": "+1234567890",
+  "dateOfBirth": "1990-01-01",
+  "gender": "male",
+  "createdAt": "2025-01-01T00:00:00.000Z",
+  "updatedAt": "2025-01-01T12:00:00.000Z"
+}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Update User Role -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-put">PUT</span>
+                                        <span class="endpoint-path">/api/users/{userId}/role</span>
+                                        <span class="endpoint-description">Update a user's role</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {admin_access_token}</pre>
+                                            <h5>Request Body:</h5>
+                                            <pre class="code-block">{
+  "role": "nutritionist"
+}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">{
+  "message": "User role updated successfully",
+  "userId": "c9e2f45d-d60b-4b41-bcda-29cca98f9491",
+  "newRole": "nutritionist"
+}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Delete User -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-delete">DELETE</span>
+                                        <span class="endpoint-path">/api/users/{userId}</span>
+                                        <span class="endpoint-description">Delete a user account</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {admin_access_token}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">{
+  "message": "User deleted successfully"
+}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Get User Stats -->
+                                <div class="endpoint-item">
+                                    <div class="endpoint-header">
+                                        <span class="method method-get">GET</span>
+                                        <span class="endpoint-path">/api/users/stats</span>
+                                        <span class="endpoint-description">Get user statistics</span>
+                                    </div>
+                                    <div class="endpoint-details">
+                                        <div class="request-section">
+                                            <h5>Headers:</h5>
+                                            <pre class="code-block">Authorization: Bearer {admin_access_token}</pre>
+                                        </div>
+                                        <div class="response-section">
+                                            <h5>Response (200 OK):</h5>
+                                            <pre class="code-block">{
+  "totalUsers": 150,
+  "patientCount": 120,
+  "nutritionistCount": 25,
+  "adminCount": 5,
+  "recentSignups": 8
+}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Navigation -->
+                    <div class="api-nav-sidebar">
+                        <h4>Quick Navigation</h4>
+                        <ul class="nav-list">
+                            <li><a href="#auth-section">Authentication</a></li>
+                            <li><a href="#chat-section">Chat & Conversations</a></li>
+                            <li><a href="#documents-section">Document Management</a></li>
+                            <li><a href="#api-keys-section">API Key Management</a></li>
+                            <li><a href="#media-section">Media Files</a></li>
+                            <li><a href="#dietplans-section">Diet Plans</a></li>
+                            <li><a href="#plans-section">Pinned Plans</a></li>
+                            <li><a href="#health-section">Health Data</a></li>
+                            <li><a href="#notifications-section">Notifications</a></li>
+                            <li><a href="#config-section">Configuration</a></li>
+                            <li><a href="#users-section">User Management</a></li>
+                        </ul>
+                    </div>
+                </div>
             `
         };
 
@@ -2889,7 +4599,7 @@
                 users: 'Users',
                 'diet-plans': 'Diet Plans',
                 documents: 'Documents',
-                analytics: 'Analytics',
+                documentation: 'Documentation',
                 'api-keys': 'API Keys',
                 settings: 'Settings'
             };

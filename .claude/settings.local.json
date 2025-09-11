@@ -63,7 +63,8 @@
       "Bash(JWT_TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiJjOWUyZjQ1ZC1kNjBiLTRiNDEtYmNkYS0yOWNjYTk4Zjk0OTEiLCJlbWFpbCI6Im5hc2h3YUBudXRyaXNoYS1hcHAuY29tIiwicm9sZSI6ImFkbWluIiwic3ViIjoiYzllMmY0NWQtZDYwYi00YjQxLWJjZGEtMjljY2E5OGY5NDkxIiwianRpIjoiMmYyMzA0YWEtYTBmNi00YjE3LTljOWMtYTUxZTIyY2MxNDEyIiwiaWF0IjoxNzU3MzQ5MjQzLCJuYmYiOjE3NTczNDkyNDMsImV4cCI6MTc1NzM1Mjg0MywiaXNzIjoiTnV0cmlzaGFBSSJ9.2xPkWZIwBvq_ucCJ27RhJqP-o6fW9bt65OJZ-jOG8RA\")",
       "Bash(git restore:*)",
       "Bash(git commit:*)",
-      "Bash(gcloud:*)"
+      "Bash(gcloud:*)",
+      "Read(//var/folders/sb/281s399j7zzbg2rbr1bh_hp00000gn/T/TemporaryItems/NSIRD_screencaptureui_ezGfxu/**)"
     ],
     "deny": []
   }

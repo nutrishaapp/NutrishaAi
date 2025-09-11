@@ -66,9 +66,23 @@ namespace NutrishaAI.API.Services
         {
             try
             {
+                _logger.LogInformation("GenerateNutritionistResponseAsync called with:");
+                _logger.LogInformation("  - User Message: '{UserMessage}'", userMessage);
+                _logger.LogInformation("  - Context Length: {ContextLength}", conversationContext?.Length ?? 0);
+                _logger.LogInformation("  - Context Value: '{Context}'", conversationContext ?? "NULL");
+                _logger.LogInformation("  - Attachments Count: {AttachmentCount}", attachments?.Count ?? 0);
+
                 // Get configuration
                 var systemPromptTemplate = await _configService.GetConfigAsync("risha_prompt");
+                var contextPromptTemplate = await _configService.GetConfigAsync("conversation_context_prompt");
                 var jsonStructure = await _configService.GetConfigAsync("response_json_structure");
+
+                _logger.LogInformation("Configuration retrieved:");
+                _logger.LogInformation("  - System Prompt Template Length: {Length}", systemPromptTemplate?.Length ?? 0);
+                _logger.LogInformation("  - System Prompt Template Preview: '{Preview}'", 
+                    systemPromptTemplate?.Length > 200 ? systemPromptTemplate.Substring(0, 200) + "..." : systemPromptTemplate ?? "NULL");
+                _logger.LogInformation("  - Context Prompt Template Length: {Length}", contextPromptTemplate?.Length ?? 0);
+                _logger.LogInformation("  - JSON Structure Length: {Length}", jsonStructure?.Length ?? 0);
 
                 if (string.IsNullOrEmpty(systemPromptTemplate) || string.IsNullOrEmpty(jsonStructure))
                 {
@@ -77,14 +91,31 @@ namespace NutrishaAI.API.Services
                 }
 
                 // Build the full nutritionist prompt with context
-                var systemPrompt = systemPromptTemplate.Replace("{conversationContext}", 
-                    conversationContext ?? "This is the start of a new conversation.");
+                var contextToUse = conversationContext ?? "This is the start of a new conversation.";
+                _logger.LogInformation("Context to use for replacement: '{ContextToUse}'", contextToUse);
+                
+                // Combine the main prompt with the context prompt
+                var systemPrompt = systemPromptTemplate;
+                if (!string.IsNullOrEmpty(contextPromptTemplate))
+                {
+                    var contextPrompt = contextPromptTemplate.Replace("{conversationContext}", contextToUse);
+                    systemPrompt = systemPromptTemplate + contextPrompt;
+                }
+                else
+                {
+                }
+                
+                _logger.LogInformation("Final system prompt after context addition (first 500 chars): '{SystemPrompt}'", 
+                    systemPrompt.Length > 500 ? systemPrompt.Substring(0, 500) + "..." : systemPrompt);
 
                 var fullPrompt = $@"{systemPrompt}
 
 User Message: {userMessage}
 
 {jsonStructure}";
+
+                _logger.LogInformation("Full prompt length: {Length} characters", fullPrompt.Length);
+                _logger.LogDebug("Full prompt being sent to Gemini: '{FullPrompt}'", fullPrompt);
 
                 // Generate response with or without attachments
                 var rawResponse = await GenerateGeminiResponseAsync(fullPrompt, attachments);
@@ -119,10 +150,18 @@ User Message: {userMessage}
         {
             try
             {
+                _logger.LogInformation("GenerateGeminiResponseAsync called");
+                _logger.LogInformation("  - Prompt length: {Length} characters", prompt?.Length ?? 0);
+                _logger.LogInformation("  - Prompt preview (first 300 chars): '{PromptPreview}'", 
+                    prompt?.Length > 300 ? prompt.Substring(0, 300) + "..." : prompt ?? "NULL");
+                _logger.LogInformation("  - Attachments count: {Count}", attachments?.Count ?? 0);
+                
                 var requestUrl = $"{_baseUrl}/models/{_model}:generateContent?key={_apiKey}";
+                _logger.LogDebug("Request URL (without API key): {BaseUrl}/models/{Model}:generateContent", _baseUrl, _model);
                 
                 // Build the request parts
                 var parts = new List<object> { new { text = prompt } };
+                _logger.LogDebug("Added text part to request");
                 
                 // Add attachments if present
                 if (attachments != null)
@@ -139,6 +178,7 @@ User Message: {userMessage}
                                     data = attachment.Base64Data
                                 }
                             });
+                            _logger.LogInformation("Added image attachment: {MimeType}, Data length: {Length}", attachment.MimeType, attachment.Base64Data.Length);
                         }
                         else if (attachment.Type == "document" && !string.IsNullOrEmpty(attachment.Base64Data))
                         {
@@ -151,7 +191,7 @@ User Message: {userMessage}
                                     data = attachment.Base64Data
                                 }
                             });
-                            _logger.LogInformation("Added PDF document to Gemini request");
+                            _logger.LogInformation("Added PDF document to Gemini request, Data length: {Length}", attachment.Base64Data.Length);
                         }
                         else if (attachment.Type == "audio" && !string.IsNullOrEmpty(attachment.Base64Data))
                         {
@@ -164,7 +204,7 @@ User Message: {userMessage}
                                     data = attachment.Base64Data
                                 }
                             });
-                            _logger.LogInformation("Added audio file to Gemini request");
+                            _logger.LogInformation("Added audio file to Gemini request: {MimeType}, Data length: {Length}", attachment.MimeType, attachment.Base64Data.Length);
                         }
                     }
                 }
@@ -185,9 +225,15 @@ User Message: {userMessage}
                 };
 
                 var json = JsonSerializer.Serialize(requestBody);
+                _logger.LogDebug("Request JSON length: {Length} characters", json.Length);
+                _logger.LogDebug("Request JSON (first 1000 chars): '{JsonPreview}'", 
+                    json.Length > 1000 ? json.Substring(0, 1000) + "..." : json);
+                
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
+                _logger.LogInformation("Sending request to Gemini API...");
 
                 var response = await _httpClient.PostAsync(requestUrl, content);
+                _logger.LogInformation("Received response from Gemini API: {StatusCode}", response.StatusCode);
                 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -199,25 +245,51 @@ User Message: {userMessage}
                 }
 
                 var responseContent = await response.Content.ReadAsStringAsync();
+                _logger.LogInformation("Raw Gemini response length: {Length} characters", responseContent.Length);
+                _logger.LogInformation("Raw Gemini response (first 500 chars): '{Response}'", 
+                    responseContent.Length > 500 ? responseContent.Substring(0, 500) + "..." : responseContent);
+                
                 var responseObj = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                _logger.LogDebug("Successfully deserialized Gemini response JSON");
                 
                 // Extract the generated text
                 if (responseObj.TryGetProperty("candidates", out var candidates) &&
                     candidates.GetArrayLength() > 0)
                 {
+                    _logger.LogDebug("Found {CandidateCount} candidates in response", candidates.GetArrayLength());
                     var firstCandidate = candidates[0];
+                    
                     if (firstCandidate.TryGetProperty("content", out var contentElement) &&
                         contentElement.TryGetProperty("parts", out var responseParts) &&
                         responseParts.GetArrayLength() > 0)
                     {
+                        _logger.LogDebug("Found {PartCount} parts in first candidate", responseParts.GetArrayLength());
                         var firstPart = responseParts[0];
+                        
                         if (firstPart.TryGetProperty("text", out var textElement))
                         {
-                            return textElement.GetString() ?? "I couldn't generate a response.";
+                            var extractedText = textElement.GetString() ?? "I couldn't generate a response.";
+                            _logger.LogInformation("Successfully extracted text from Gemini response: {Length} characters", extractedText.Length);
+                            _logger.LogInformation("Extracted text preview: '{TextPreview}'", 
+                                extractedText.Length > 200 ? extractedText.Substring(0, 200) + "..." : extractedText);
+                            return extractedText;
+                        }
+                        else
+                        {
+                            _logger.LogWarning("No 'text' property found in first part of Gemini response");
                         }
                     }
+                    else
+                    {
+                        _logger.LogWarning("No 'content' or 'parts' found in first candidate of Gemini response");
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning("No 'candidates' found in Gemini response");
                 }
 
+                _logger.LogError("Failed to extract text from Gemini response structure");
                 return "I couldn't generate a response.";
             }
             catch (Exception ex)

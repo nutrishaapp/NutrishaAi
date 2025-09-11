@@ -55,9 +55,9 @@ namespace NutrishaAI.API.Services
                     throw new InvalidOperationException("Conversation not found or access denied");
 
                 // Get conversation context for memory extraction
-                var recentMessages = await _messageService.GetRecentMessagesForContextAsync(request.ConversationId, 3);
+                var recentMessages = await _messageService.GetRecentMessagesForContextAsync(request.ConversationId, 10);
                 var conversationContext = string.Join("\n",
-                    recentMessages.Select(m => $"{(m.IsAiGenerated ? "AI" : "User")}: {m.Content}"));
+                    recentMessages.AsEnumerable().Reverse().Select(m => $"{(m.IsAiGenerated ? "AI" : "User")}: {m.Content}"));
 
                 // Start all parallel tasks
                 var saveMessageTask = _messageService.SaveUserMessageAsync(request.ConversationId, userId, request);
@@ -204,19 +204,24 @@ namespace NutrishaAI.API.Services
             try
             {
                 // Get recent conversation context
-                var recentMessages = await _messageService.GetRecentMessagesForContextAsync(conversationId, 5);
+                var recentMessages = await _messageService.GetRecentMessagesForContextAsync(conversationId, 100);
+                
                 var conversationContext = string.Join("\n",
-                    recentMessages.Select(m => $"{(m.IsAiGenerated ? "AI" : "User")}: {m.Content}"));
+                    recentMessages.AsEnumerable().Reverse().Select(m => $"{(m.IsAiGenerated ? "AI" : "User")}: {m.Content}"));
+                
 
                 // Process attachments if any
                 var (combinedPrompt, attachments) = await _attachmentService.ProcessAttachmentsAsync(
                     request.Attachments, request.Content);
+                
 
                 // Generate AI nutritionist response
+                
                 var aiResponseText = await _geminiService.GenerateNutritionistResponseAsync(
                     combinedPrompt,
                     conversationContext,
                     attachments.Any() ? attachments : null);
+                
 
                 // Save AI response message
                 if (!string.IsNullOrEmpty(aiResponseText))

@@ -55,7 +55,7 @@ Guidelines:
 Current conversation context: {conversationContext}",
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow,
-                        UpdatedBy = Guid.Empty // Will be set to NULL in database
+                        UpdatedBy = null
                     },
                     new AppConfig
                     {
@@ -73,7 +73,7 @@ Analyze this image and provide:
 [Image data provided as base64]",
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow,
-                        UpdatedBy = Guid.Empty // Will be set to NULL in database
+                        UpdatedBy = null
                     },
                     new AppConfig
                     {
@@ -95,7 +95,7 @@ Extract and return in JSON format:
 If no relevant data is found, return empty arrays/objects.",
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow,
-                        UpdatedBy = Guid.Empty // Will be set to NULL in database
+                        UpdatedBy = null
                     },
                     new AppConfig
                     {
@@ -103,7 +103,7 @@ If no relevant data is found, return empty arrays/objects.",
                         Value = "I apologize, but I'm experiencing technical difficulties. Please try again later.",
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow,
-                        UpdatedBy = Guid.Empty // Will be set to NULL in database
+                        UpdatedBy = null
                     },
                     new AppConfig
                     {
@@ -115,7 +115,20 @@ If no relevant data is found, return empty arrays/objects.",
 Note: Audio transcription is not yet implemented. Please provide nutrition advice based on this audio.",
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow,
-                        UpdatedBy = Guid.Empty // Will be set to NULL in database
+                        UpdatedBy = null
+                    },
+                    new AppConfig
+                    {
+                        Key = "conversation_context_prompt",
+                        Value = @"
+
+Previous Conversation History:
+{conversationContext}
+
+Remember: Use information from the conversation history above when responding to the user. If the user asks about previous conversations or mentions something discussed before, refer to the history provided.",
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                        UpdatedBy = null
                     }
                 };
 

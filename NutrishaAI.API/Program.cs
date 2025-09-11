@@ -159,6 +159,10 @@ builder.Services.AddScoped<IMessageService, MessageService>();
 builder.Services.AddScoped<IAttachmentProcessingService, AttachmentProcessingService>();
 builder.Services.AddScoped<IChatOrchestrationService, ChatOrchestrationService>();
 
+// Register Qdrant and Gemini embedding services
+builder.Services.AddHttpClient<IQdrantRestService, QdrantRestService>();
+builder.Services.AddHttpClient<IGeminiEmbeddingService, GeminiEmbeddingService>();
+
 // Add health checks
 builder.Services.AddHealthChecks();
 

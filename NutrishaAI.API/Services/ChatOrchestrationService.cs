@@ -15,6 +15,8 @@ namespace NutrishaAI.API.Services
         private readonly ISimpleGeminiService _geminiService;
         private readonly IGeminiService _geminiServiceLegacy;
         private readonly IAzureBlobService _blobService;
+        private readonly IQdrantRestService _qdrantService;
+        private readonly IGeminiEmbeddingService _embeddingService;
         private readonly ILogger<ChatOrchestrationService> _logger;
 
         public ChatOrchestrationService(
@@ -26,6 +28,8 @@ namespace NutrishaAI.API.Services
             ISimpleGeminiService geminiService,
             IGeminiService geminiServiceLegacy,
             IAzureBlobService blobService,
+            IQdrantRestService qdrantService,
+            IGeminiEmbeddingService embeddingService,
             ILogger<ChatOrchestrationService> logger)
         {
             _conversationService = conversationService;
@@ -36,6 +40,8 @@ namespace NutrishaAI.API.Services
             _geminiService = geminiService;
             _geminiServiceLegacy = geminiServiceLegacy;
             _blobService = blobService;
+            _qdrantService = qdrantService;
+            _embeddingService = embeddingService;
             _logger = logger;
         }
 
@@ -48,30 +54,88 @@ namespace NutrishaAI.API.Services
                 if (conversation == null)
                     throw new InvalidOperationException("Conversation not found or access denied");
 
-                // Save user message
-                var messageResponse = await _messageService.SaveUserMessageAsync(request.ConversationId, userId, request);
+                // Get conversation context for memory extraction
+                var recentMessages = await _messageService.GetRecentMessagesForContextAsync(request.ConversationId, 3);
+                var conversationContext = string.Join("\n",
+                    recentMessages.Select(m => $"{(m.IsAiGenerated ? "AI" : "User")}: {m.Content}"));
 
-                // Update conversation timestamp
-                await _messageService.UpdateConversationTimestampAsync(request.ConversationId);
+                // Start all parallel tasks
+                var saveMessageTask = _messageService.SaveUserMessageAsync(request.ConversationId, userId, request);
+                var updateTimestampTask = _messageService.UpdateConversationTimestampAsync(request.ConversationId);
+                var extractMemoryTask = _geminiService.ExtractMemoryAsync(request.Content, conversationContext);
 
-                // Send message via Realtime
-                try
+                // Wait for message to be saved first (needed for response)
+                var messageResponse = await saveMessageTask;
+
+                // Fire and forget tasks that don't need to block the response
+                _ = Task.Run(async () =>
                 {
-                    await _realtimeService.SendMessageAsync(request.ConversationId, new Message
+                    try
                     {
-                        Id = messageResponse.Id,
-                        ConversationId = messageResponse.ConversationId,
-                        SenderId = messageResponse.SenderId,
-                        Content = messageResponse.Content,
-                        MessageType = messageResponse.MessageType,
-                        IsAiGenerated = messageResponse.IsAiGenerated,
-                        CreatedAt = messageResponse.CreatedAt
-                    });
-                }
-                catch (Exception ex)
+                        // Send message via Realtime
+                        await _realtimeService.SendMessageAsync(request.ConversationId, new Message
+                        {
+                            Id = messageResponse.Id,
+                            ConversationId = messageResponse.ConversationId,
+                            SenderId = messageResponse.SenderId,
+                            Content = messageResponse.Content,
+                            MessageType = messageResponse.MessageType,
+                            IsAiGenerated = messageResponse.IsAiGenerated,
+                            CreatedAt = messageResponse.CreatedAt
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to send realtime message for conversation {ConversationId}", request.ConversationId);
+                    }
+                });
+
+                // Handle memory extraction and storage (fire and forget)
+                _ = Task.Run(async () =>
                 {
-                    _logger.LogWarning(ex, "Failed to send realtime message for conversation {ConversationId}", request.ConversationId);
-                }
+                    try
+                    {
+                        var extractedMemory = await extractMemoryTask;
+                        
+                        if (extractedMemory.ShouldSave && !string.IsNullOrEmpty(extractedMemory.Summary))
+                        {
+                            _logger.LogInformation("Saving memory for user {UserId}: {Summary}", userId, extractedMemory.Summary);
+                            
+                            try
+                            {
+                                // Generate embedding
+                                var embedding = await _embeddingService.GenerateEmbeddingAsync(extractedMemory.Summary);
+                                
+                                if (embedding != null && embedding.Length > 0)
+                                {
+                                    // Store in Qdrant
+                                    var memoryVector = new Models.MemoryVector
+                                    {
+                                        UserId = userId,
+                                        ConversationId = request.ConversationId,
+                                        Summary = extractedMemory.Summary,
+                                        MessageContent = request.Content,
+                                        Embedding = embedding,
+                                        Topics = extractedMemory.Topics,
+                                        Metadata = extractedMemory.Metadata
+                                    };
+                                    
+                                    await _qdrantService.StoreMemoryAsync(memoryVector);
+                                    _logger.LogDebug("Memory stored successfully in Qdrant for user {UserId}", userId);
+                                }
+                            }
+                            catch (Exception embeddingEx)
+                            {
+                                _logger.LogWarning(embeddingEx, "Failed to generate embedding or store in Qdrant. Memory extraction: {Summary}", extractedMemory.Summary);
+                                // Continue without storing - don't break the main flow
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to extract memory for conversation {ConversationId}", request.ConversationId);
+                    }
+                });
 
                 // Send push notification if nutritionist sends message to patient
                 await HandlePushNotificationAsync(request.ConversationId, userId, messageResponse, userRole, conversation);
@@ -81,6 +145,9 @@ namespace NutrishaAI.API.Services
                 {
                     _ = Task.Run(async () => await HandleAiResponseAsync(request.ConversationId, request, conversation));
                 }
+
+                // Ensure timestamp update completes
+                await updateTimestampTask;
 
                 return messageResponse;
             }

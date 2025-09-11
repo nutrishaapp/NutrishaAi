@@ -35,6 +35,7 @@ namespace NutrishaAI.API.Services
     {
         Task<string> GenerateNutritionistResponseAsync(string userMessage, string? conversationContext = null, List<AttachmentContent>? attachments = null);
         Task<string> ExtractContentAsync(string prompt, List<AttachmentContent>? attachments = null);
+        Task<Models.ExtractedMemory> ExtractMemoryAsync(string message, string? conversationContext = null);
     }
 
     public class SimpleGeminiService : ISimpleGeminiService, IGeminiService
@@ -405,6 +406,118 @@ User Message: {userMessage}
             }
             
             return string.Empty;
+        }
+
+        public async Task<Models.ExtractedMemory> ExtractMemoryAsync(string message, string? conversationContext = null)
+        {
+            try
+            {
+                var prompt = $@"Analyze the following user message and extract important information that should be remembered for future conversations.
+
+Context from conversation:
+{conversationContext ?? "This is the start of a conversation."}
+
+User Message:
+{message}
+
+Extract and return a JSON response with the following structure:
+{{
+  ""summary"": ""A concise summary of the important information to remember (max 200 characters)"",
+  ""shouldSave"": true/false (whether this contains information worth remembering),
+  ""topics"": [""array"", ""of"", ""relevant"", ""topics""],
+  ""metadata"": {{
+    ""hasHealthInfo"": true/false,
+    ""hasDietaryPreferences"": true/false,
+    ""hasGoals"": true/false,
+    ""hasAllergies"": true/false,
+    ""category"": ""health|diet|lifestyle|general""
+  }}
+}}
+
+Focus on extracting:
+- Health conditions, symptoms, or medical history
+- Dietary preferences, restrictions, or allergies
+- Personal goals or objectives
+- Important personal information
+- Preferences about nutrition or health
+
+Do NOT save:
+- Casual greetings or small talk
+- Temporary questions without personal context
+- Information already in the conversation context
+
+Return ONLY the JSON object, no additional text or markdown formatting.";
+
+                var rawResponse = await GenerateGeminiResponseAsync(prompt, null);
+                
+                // Parse the JSON response
+                var cleanedResponse = CleanJsonResponse(rawResponse);
+                var jsonText = ExtractJsonFromResponse(cleanedResponse);
+                
+                if (!string.IsNullOrEmpty(jsonText))
+                {
+                    try
+                    {
+                        var memoryData = JsonSerializer.Deserialize<JsonElement>(jsonText, new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true
+                        });
+
+                        var extractedMemory = new Models.ExtractedMemory
+                        {
+                            Summary = memoryData.GetProperty("summary").GetString() ?? string.Empty,
+                            ShouldSave = memoryData.GetProperty("shouldSave").GetBoolean(),
+                            Topics = memoryData.TryGetProperty("topics", out var topics) 
+                                ? topics.EnumerateArray().Select(t => t.GetString() ?? string.Empty).ToList()
+                                : new List<string>(),
+                            Metadata = new Dictionary<string, object>()
+                        };
+
+                        // Parse metadata if present
+                        if (memoryData.TryGetProperty("metadata", out var metadata))
+                        {
+                            foreach (var prop in metadata.EnumerateObject())
+                            {
+                                extractedMemory.Metadata[prop.Name] = prop.Value.ValueKind switch
+                                {
+                                    JsonValueKind.String => prop.Value.GetString(),
+                                    JsonValueKind.Number => prop.Value.GetDouble(),
+                                    JsonValueKind.True => true,
+                                    JsonValueKind.False => false,
+                                    _ => prop.Value.ToString()
+                                };
+                            }
+                        }
+
+                        _logger.LogDebug("Extracted memory: ShouldSave={ShouldSave}, Topics={TopicCount}", 
+                            extractedMemory.ShouldSave, extractedMemory.Topics.Count);
+                        
+                        return extractedMemory;
+                    }
+                    catch (JsonException ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to parse memory extraction JSON response");
+                    }
+                }
+
+                // Return default if parsing fails
+                return new Models.ExtractedMemory
+                {
+                    Summary = string.Empty,
+                    ShouldSave = false,
+                    Topics = new List<string>()
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error extracting memory from message");
+                return new Models.ExtractedMemory
+                {
+                    Summary = string.Empty,
+                    ShouldSave = false,
+                    Topics = new List<string>()
+                };
+            }
         }
 
         // Legacy methods to maintain compatibility with existing IGeminiService interface

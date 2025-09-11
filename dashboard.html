@@ -1194,7 +1194,23 @@
             flex: 1;
         }
 
-        .close-btn {
+        .plan-detail {
+            margin-bottom: 20px;
+        }
+
+        .plan-detail h3 {
+            margin: 0 0 8px 0;
+            color: var(--dark-color);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .plan-detail p {
+            margin: 0;
+            color: #666;
+        }
+
+        .modal-close, .close-btn {
             background: none;
             border: none;
             font-size: 24px;
@@ -5130,8 +5146,27 @@ offset: 0 (optional, default 0)</pre>
                         const createdDate = new Date(plan.createdAt).toLocaleDateString();
                         
                         // Extract title and description from plan content if available
-                        const title = plan.planContent?.title || `${plan.planType.charAt(0).toUpperCase() + plan.planType.slice(1)} Plan`;
-                        const description = plan.planContent?.description || `A personalized ${plan.planType} plan tailored to your needs.`;
+                        let title, description;
+                        
+                        if (plan.planContent && typeof plan.planContent === 'object') {
+                            // Handle nested object structure from .NET serialization
+                            let contentTitle = plan.planContent.title;
+                            if (contentTitle && typeof contentTitle === 'string') {
+                                title = contentTitle;
+                            } else {
+                                title = `${plan.planType.charAt(0).toUpperCase() + plan.planType.slice(1)} Plan`;
+                            }
+                            
+                            let contentDescription = plan.planContent.description;
+                            if (contentDescription && typeof contentDescription === 'string') {
+                                description = contentDescription;
+                            } else {
+                                description = `A personalized ${plan.planType} plan tailored to your needs.`;
+                            }
+                        } else {
+                            title = `${plan.planType.charAt(0).toUpperCase() + plan.planType.slice(1)} Plan`;
+                            description = `A personalized ${plan.planType} plan tailored to your needs.`;
+                        }
                         
                         return `
                             <div class="plan-card">
@@ -5200,11 +5235,68 @@ offset: 0 (optional, default 0)</pre>
             }
         }
 
-        function viewPlan(planId) {
-            // This would navigate to a detailed view of the plan
-            console.log('Viewing plan:', planId);
-            // For now, just show an alert
-            alert('View plan functionality coming soon!');
+        async function viewPlan(planId) {
+            try {
+                const token = localStorage.getItem('authToken');
+                const response = await fetch(`${API_URL}/api/pinned-plans/${planId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch plan: ${response.statusText}`);
+                }
+                
+                const plan = await response.json();
+                
+                // Create a modal to display the plan details
+                const modal = document.createElement('div');
+                modal.className = 'modal';
+                modal.innerHTML = `
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2>Plan Details</h2>
+                            <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="plan-detail">
+                                <h3>Plan Type</h3>
+                                <p>${plan.planType.charAt(0).toUpperCase() + plan.planType.slice(1)}</p>
+                            </div>
+                            <div class="plan-detail">
+                                <h3>Duration</h3>
+                                <p>${plan.startDate ? new Date(plan.startDate).toLocaleDateString() : 'Not set'} - ${plan.endDate ? new Date(plan.endDate).toLocaleDateString() : 'Ongoing'}</p>
+                            </div>
+                            <div class="plan-detail">
+                                <h3>Status</h3>
+                                <p>${plan.isActive ? 'Active' : 'Inactive'}</p>
+                            </div>
+                            <div class="plan-detail">
+                                <h3>Plan Content</h3>
+                                <pre style="background: #f5f5f5; padding: 15px; border-radius: 5px; overflow-x: auto; white-space: pre-wrap;">${JSON.stringify(plan.planContent, null, 2)}</pre>
+                            </div>
+                            <div class="plan-detail">
+                                <h3>Created</h3>
+                                <p>${new Date(plan.createdAt).toLocaleString()}</p>
+                            </div>
+                            <div class="plan-detail">
+                                <h3>Last Updated</h3>
+                                <p>${new Date(plan.updatedAt).toLocaleString()}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                modal.style.display = 'flex';
+                
+            } catch (error) {
+                console.error('Error viewing plan:', error);
+                alert('Failed to load plan details. Please try again.');
+            }
         }
 
         function copyPlan(planId) {

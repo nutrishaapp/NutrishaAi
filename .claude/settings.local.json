@@ -64,7 +64,8 @@
       "Bash(git restore:*)",
       "Bash(git commit:*)",
       "Bash(gcloud:*)",
-      "Read(//var/folders/sb/281s399j7zzbg2rbr1bh_hp00000gn/T/TemporaryItems/NSIRD_screencaptureui_ezGfxu/**)"
+      "Read(//var/folders/sb/281s399j7zzbg2rbr1bh_hp00000gn/T/TemporaryItems/NSIRD_screencaptureui_ezGfxu/**)",
+      "Read(//var/folders/sb/281s399j7zzbg2rbr1bh_hp00000gn/T/TemporaryItems/NSIRD_screencaptureui_pQ92iN/**)"
     ],
     "deny": []
   }

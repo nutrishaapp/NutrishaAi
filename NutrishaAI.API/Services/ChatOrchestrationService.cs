@@ -212,7 +212,7 @@ namespace NutrishaAI.API.Services
 
                 // Process attachments if any
                 var (combinedPrompt, attachments) = await _attachmentService.ProcessAttachmentsAsync(
-                    request.Attachments, request.Content);
+                    request.Attachments, request.Content); 
                 
 
                 // Generate AI nutritionist response

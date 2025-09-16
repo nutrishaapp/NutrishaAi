@@ -169,15 +169,13 @@ builder.Services.AddHealthChecks();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
-if (app.Environment.IsDevelopment())
+// Enable Swagger in all environments (including production)
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "NutrishaAI API V1");
-        c.RoutePrefix = string.Empty; // Set Swagger UI at the root
-    });
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "NutrishaAI API V1");
+    c.RoutePrefix = string.Empty; // Set Swagger UI at the root
+});
 
 // Global error handling
 app.UseExceptionHandler("/error");

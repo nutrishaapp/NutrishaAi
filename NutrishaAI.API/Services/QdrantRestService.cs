@@ -8,7 +8,7 @@ namespace NutrishaAI.API.Services
     {
         Task InitializeCollectionAsync();
         Task<bool> StoreMemoryAsync(MemoryVector memory);
-        Task<List<MemorySearchResult>> SearchMemoriesAsync(float[] queryEmbedding, Guid userId, int limit = 5);
+        Task<List<MemorySearchResult>> SearchMemoriesAsync(float[] queryEmbedding, Guid userId, int limit = 200);
         Task<bool> DeleteMemoryAsync(Guid memoryId);
         Task<bool> DeleteUserMemoriesAsync(Guid userId);
     }
@@ -176,7 +176,7 @@ namespace NutrishaAI.API.Services
             }
         }
 
-        public async Task<List<MemorySearchResult>> SearchMemoriesAsync(float[] queryEmbedding, Guid userId, int limit = 5)
+        public async Task<List<MemorySearchResult>> SearchMemoriesAsync(float[] queryEmbedding, Guid userId, int limit = 200)
         {
             try
             {
@@ -263,6 +263,7 @@ namespace NutrishaAI.API.Services
                 return new List<MemorySearchResult>();
             }
         }
+
 
         public async Task<bool> DeleteMemoryAsync(Guid memoryId)
         {

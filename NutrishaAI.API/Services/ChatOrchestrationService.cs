@@ -1,3 +1,4 @@
+using NutrishaAI.API.Models;
 using NutrishaAI.API.Models.Requests;
 using NutrishaAI.API.Models.Responses;
 using NutrishaAI.Core.Entities;
@@ -63,6 +64,10 @@ namespace NutrishaAI.API.Services
                 var saveMessageTask = _messageService.SaveUserMessageAsync(request.ConversationId, userId, request);
                 var updateTimestampTask = _messageService.UpdateConversationTimestampAsync(request.ConversationId);
                 var extractMemoryTask = _geminiService.ExtractMemoryAsync(request.Content, conversationContext);
+
+                // NEW: Search for relevant memories by user_id
+                // This retrieves all user memories across all conversations
+                var searchMemoriesTask = SearchUserMemoriesAsync(request.Content, userId);
 
                 // Wait for message to be saved first (needed for response)
                 var messageResponse = await saveMessageTask;
@@ -140,10 +145,13 @@ namespace NutrishaAI.API.Services
                 // Send push notification if nutritionist sends message to patient
                 await HandlePushNotificationAsync(request.ConversationId, userId, messageResponse, userRole, conversation);
 
+                // Wait for memory search to complete before generating AI response
+                var retrievedMemories = await searchMemoriesTask;
+
                 // Generate AI response only if conversation mode is "ai"
                 if (conversation.ConversationMode == "ai")
                 {
-                    _ = Task.Run(async () => await HandleAiResponseAsync(request.ConversationId, request, conversation));
+                    _ = Task.Run(async () => await HandleAiResponseAsync(request.ConversationId, request, conversation, retrievedMemories));
                 }
 
                 // Ensure timestamp update completes
@@ -199,7 +207,34 @@ namespace NutrishaAI.API.Services
             }
         }
 
-        private async Task HandleAiResponseAsync(Guid conversationId, SendMessageRequest request, Conversation conversation)
+        private async Task<List<MemorySearchResult>> SearchUserMemoriesAsync(string message, Guid userId)
+        {
+            try
+            {
+                // Generate embedding for the raw user message
+                var embedding = await _embeddingService.GenerateEmbeddingAsync(message);
+
+                if (embedding == null || embedding.Length == 0)
+                {
+                    _logger.LogWarning("Failed to generate embedding for memory search");
+                    return new List<MemorySearchResult>();
+                }
+
+                // Search by user_id to get memories across all conversations
+                var memories = await _qdrantService.SearchMemoriesAsync(embedding, userId, 200);
+
+                _logger.LogInformation("Retrieved {Count} memories for user {UserId}",
+                    memories.Count, userId);
+                return memories;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error searching user memories");
+                return new List<MemorySearchResult>();
+            }
+        }
+
+        private async Task HandleAiResponseAsync(Guid conversationId, SendMessageRequest request, Conversation conversation, List<MemorySearchResult> retrievedMemories)
         {
             try
             {
@@ -210,16 +245,22 @@ namespace NutrishaAI.API.Services
                     recentMessages.AsEnumerable().Reverse().Select(m => $"{(m.IsAiGenerated ? "AI" : "User")}: {m.Content}"));
                 
 
+                // Format retrieved memories for context
+                var memoryContext = FormatMemoriesForContext(retrievedMemories);
+
                 // Process attachments if any
                 var (combinedPrompt, attachments) = await _attachmentService.ProcessAttachmentsAsync(
-                    request.Attachments, request.Content); 
-                
+                    request.Attachments, request.Content);
 
-                // Generate AI nutritionist response
-                
+                // Combine conversation context with memory context
+                var fullContext = string.IsNullOrEmpty(memoryContext)
+                    ? conversationContext
+                    : $"{memoryContext}\n\n{conversationContext}";
+
+                // Generate AI nutritionist response with memory context
                 var aiResponseText = await _geminiService.GenerateNutritionistResponseAsync(
                     combinedPrompt,
-                    conversationContext,
+                    fullContext,
                     attachments.Any() ? attachments : null);
                 
 
@@ -252,6 +293,31 @@ namespace NutrishaAI.API.Services
             {
                 _logger.LogWarning(ex, "Failed to process message with Gemini AI for conversation {ConversationId}", conversationId);
             }
+        }
+
+        private string FormatMemoriesForContext(List<MemorySearchResult> memories)
+        {
+            if (memories == null || memories.Count == 0)
+            {
+                return string.Empty;
+            }
+
+            // Use all retrieved memories (up to 200) ordered by relevance
+            var orderedMemories = memories
+                .OrderByDescending(m => m.Score)
+                .ToList();
+
+            var formattedMemories = new List<string>();
+            formattedMemories.Add("RELEVANT CONTEXT FROM CONVERSATION HISTORY:");
+
+            foreach (var memory in orderedMemories)
+            {
+                // Format each memory with relevance score
+                var formattedMemory = $"• {memory.Memory.Summary} (relevance: {memory.Score:F2})";
+                formattedMemories.Add(formattedMemory);
+            }
+
+            return string.Join("\n", formattedMemories);
         }
 
         private async Task HandlePushNotificationAsync(Guid conversationId, Guid senderId, MessageResponse message, string senderRole, Conversation conversation)
